@@ -912,6 +912,8 @@ function renderBars(){
   const ps = D.players, max = Math.max(1, ...ps.map(p=>p[m.k]||0));
   const lower = !!m.lowerBetter, best = lower ? Math.min(...ps.map(p=>p[m.k]||0)) : Math.max(...ps.map(p=>p[m.k]||0));
   const cmp = lower ? ((a,b)=>(a[m.k]||0)-(b[m.k]||0) || a.name.localeCompare(b.name)) : ((a,b)=>(b[m.k]||0)-(a[m.k]||0) || a.name.localeCompare(b.name));
+  const worst = lower ? Math.max(...ps.map(p=>p[m.k]||0)) : Math.min(...ps.map(p=>p[m.k]||0));
+  const hasLeader = lower ? best!==worst : best>0;               // si todos van igual (o a cero) no hay líder
   const note = $('catNote'); note.hidden = !lower; if(lower) note.textContent = m.lowerNote || 'En esta categoría gana quien menos tiene.';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!barsReady || el.children.length !== ps.length){
@@ -931,7 +933,7 @@ function renderBars(){
     const row = el.querySelector(`.bar[data-u="${p.uuid}"]`); if(!row) return;
     const val = p[m.k]||0;
     row.style.transform = `translateY(${rank*BAR_ROW}px)`;
-    row.classList.toggle('first', lower ? val===best : (rank===0 && val>0));
+    row.classList.toggle('first', hasLeader && val===best);        // misma regla en todas las categorías: todos los empatados en cabeza
     row.querySelector('.fill').style.width = (val/max*100).toFixed(1)+'%';
     const v = row.querySelector('.v'), from = parseFloat(v.dataset.val)||0;
     if(from === val){ v.textContent = m.f(val); return; }        // sin cambios: no se toca
