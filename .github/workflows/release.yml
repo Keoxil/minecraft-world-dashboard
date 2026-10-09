@@ -36,4 +36,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" dist/MinecraftWorldDashboard.exe dist/SHA256.txt --title "${{ github.ref_name }}" --notes "Descarga **MinecraftWorldDashboard.exe** y haz doble clic. Verificación: ``gh attestation verify MinecraftWorldDashboard.exe --repo ${{ github.repository }}`` o compara su SHA-256 con SHA256.txt."
+        run: |
+          gh release create "${{ github.ref_name }}" dist/MinecraftWorldDashboard.exe dist/SHA256.txt `
+            --title "${{ github.ref_name }}" `
+            --notes "Descarga MinecraftWorldDashboard.exe y haz doble clic. Para verificarlo: gh attestation verify MinecraftWorldDashboard.exe --repo ${{ github.repository }} (o compara su SHA-256 con SHA256.txt)."
