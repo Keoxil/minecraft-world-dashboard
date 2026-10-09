@@ -21,13 +21,24 @@ No necesita mods ni plugins: lee los archivos del propio mundo (estadísticas, l
 
 ## Empezar (lo más fácil)
 
-1. Instala [Python](https://www.python.org/downloads/) (marca **Add python.exe to PATH**) y descarga este repositorio (botón verde *Code → Download ZIP*).
+1. Descarga **`MinecraftWorldDashboard.exe`** desde [Releases](../../releases/latest).
 2. Abre Minecraft con tu mundo.
-3. Haz doble clic en **`INICIAR.bat`** (en Linux/macOS: `python3 start.py`).
+3. Haz doble clic en el `.exe`.
 
-Eso es todo. Lee tu mundo, abre la página en tu navegador, la mantiene al día cada minuto y crea un **enlace público** (descarga y verifica por su cuenta la herramienta de Cloudflare, sin cuenta ni configuración) que se copia solo al portapapeles. Se lo pasas a tus amigos y ya pueden verla. La primera vez te pregunta si quieres que arranque solo al encender el ordenador. Si no quieres enlace público: `python start.py --sin-enlace`.
+Eso es todo: no hace falta instalar nada, ni Python ni cuentas. Lee tu mundo, abre la página en tu navegador y la mantiene al día cada minuto. Además crea un **enlace público** con Cloudflare (descarga la herramienta ella sola, comprobando su firma oficial) y lo copia al portapapeles: se lo pasas a tus amigos y ya pueden verla. La primera vez te pregunta si quieres que arranque sola al encender el ordenador. Sin enlace público: ejecuta el programa con `--sin-enlace`.
 
-El enlace cambia cada vez que se reinicia el programa. Si quieres un enlace fijo, usa un [túnel con nombre de Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (necesita cuenta gratuita).
+Tus datos y ajustes se guardan en `%LOCALAPPDATA%\MinecraftWorldDashboard` (ahí va también `config.json` si lo necesitas). Para desinstalar, borra el `.exe` y esa carpeta (y, si activaste el arranque automático, ejecuta el programa una vez con `--quitar-inicio`).
+
+El enlace cambia cada vez que se reinicia el programa. Si quieres uno fijo, usa un [túnel con nombre de Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (necesita cuenta gratuita).
+
+### ¿Es seguro?
+
+- **El `.exe` no lo compila una persona, lo compila GitHub** a la vista de todos desde este código ([workflow](.github/workflows/release.yml)). Puedes comprobarlo: `gh attestation verify MinecraftWorldDashboard.exe --repo <usuario>/minecraft-world-dashboard`, o comparar su SHA-256 con `SHA256.txt`.
+- **Windows puede avisarte** ("Windows protegió su PC") porque el programa no tiene firma de pago, algo normal en proyectos pequeños. Si no te fías, no lo ejecutes: todo el código está aquí, es corto y usa solo Python estándar; puedes lanzarlo con `python start.py`.
+- **Solo lee** los archivos de tus mundos; nunca los modifica ni toca contraseñas, cuentas ni el resto del disco.
+- **Superficie expuesta mínima:** el servidor escucha solo en `127.0.0.1`, solo responde a GET y solo entrega 5 archivos concretos (la página y sus 3 archivos de datos). No sirve carpetas, no ejecuta nada ni acepta subidas. La página lleva una política CSP estricta y escapa todos los nombres (probado con nombres de jugador maliciosos).
+- **Cloudflare:** la herramienta se descarga de GitHub oficial y se verifica con su huella SHA-256 antes de ejecutarse. El túnel es saliente: no se abre ningún puerto en tu router.
+- **Privacidad:** quien tenga el enlace ve nombres de jugadores, coordenadas actuales y dónde murieron. Compártelo solo con tus amigos.
 
 ## Uso manual
 

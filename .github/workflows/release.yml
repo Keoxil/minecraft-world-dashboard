@@ -1,0 +1,39 @@
+name: Publicar .exe
+
+# Al subir una etiqueta (git tag v1.0.0 && git push --tags) GitHub compila el .exe desde el código público,
+# calcula su huella SHA-256 y le añade una atestación de procedencia verificable.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compilar
+        shell: pwsh
+        run: |
+          python -m pip install pyinstaller==6.11.1
+          python -m PyInstaller --noconfirm --clean --onefile --name MinecraftWorldDashboard `
+            --add-data "site/index.html;site" start.py
+          $h = (Get-FileHash dist/MinecraftWorldDashboard.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  MinecraftWorldDashboard.exe" | Out-File -Encoding ascii dist/SHA256.txt
+      - uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: dist/MinecraftWorldDashboard.exe
+      - name: Publicar en Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/MinecraftWorldDashboard.exe dist/SHA256.txt --title "${{ github.ref_name }}" --notes "Descarga **MinecraftWorldDashboard.exe** y haz doble clic. Verificación: ``gh attestation verify MinecraftWorldDashboard.exe --repo ${{ github.repository }}`` o compara su SHA-256 con SHA256.txt."

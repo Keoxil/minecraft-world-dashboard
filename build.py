@@ -3,8 +3,9 @@ import glob, json, os, struct, sys, time, zlib
 from datetime import datetime, timezone
 from multiprocessing import Pool
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+import paths
+HERE = paths.APP
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nbt_mini
 import terrain
 import discover

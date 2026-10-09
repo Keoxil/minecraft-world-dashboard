@@ -22,7 +22,9 @@ import time
 import urllib.request
 import webbrowser
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+import paths
+HERE = paths.APP
+SELF = os.path.abspath(__file__)
 DATA = os.path.join(HERE, "data")
 TOOLS = os.path.join(HERE, "tools")
 IS_WIN = sys.platform.startswith("win")
@@ -147,9 +149,14 @@ def pid_alive(pid):
         return False
 
 
+def selfcmd(mode):
+    """Comando para volver a lanzarse en un modo interno (--build / --serve), sea .exe o script."""
+    return [sys.executable, mode] if paths.FROZEN else [sys.executable, SELF, mode]
+
+
 def run_build():
     try:
-        r = subprocess.run([sys.executable, os.path.join(HERE, "build.py")], cwd=HERE, capture_output=True, text=True,
+        r = subprocess.run(selfcmd("--build"), cwd=HERE, capture_output=True, text=True,
                            timeout=900, creationflags=NO_WINDOW)
         return (r.stdout + r.stderr).strip()
     except Exception as e:
@@ -167,7 +174,7 @@ def instalar_inicio():
         return
     pyw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
     exe = pyw if os.path.isfile(pyw) else sys.executable
-    tr = f'"{exe}" "{os.path.join(HERE, "start.py")}" --silencioso'
+    tr = f'"{sys.executable}" --silencioso' if paths.FROZEN else f'"{exe}" "{SELF}" --silencioso'
     r = subprocess.run(["schtasks", "/Create", "/TN", TASK_INICIO, "/SC", "ONLOGON", "/F", "/TR", tr],
                        capture_output=True, text=True, creationflags=NO_WINDOW)
     say("Listo: se iniciará solo cada vez que inicies sesión." if r.returncode == 0 else "No he podido crearlo: " + r.stdout + r.stderr)
@@ -198,6 +205,12 @@ def main():
     ap.add_argument("--quitar-inicio", action="store_true")
     args = ap.parse_args()
     QUIET = args.silencioso
+    if args.silencioso and IS_WIN and paths.FROZEN:
+        try:
+            import ctypes
+            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        except Exception:
+            pass
     if args.instalar_inicio:
         return instalar_inicio()
     if args.quitar_inicio:
@@ -235,7 +248,7 @@ def main():
     def start_server():
         if port_in_use(port):
             return None
-        return spawn([sys.executable, os.path.join(HERE, "serve.py")], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return spawn(selfcmd("--serve"), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def start_tunnel():
         try:
@@ -348,4 +361,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import multiprocessing
+    multiprocessing.freeze_support()          # imprescindible en el .exe: build.py usa procesos
+    if "--build" in sys.argv[1:2]:
+        import build
+        build.main()
+    elif "--serve" in sys.argv[1:2]:
+        import serve
+        serve.run()
+    else:
+        main()

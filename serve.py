@@ -3,8 +3,10 @@ import json
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-BASE = os.path.join(HERE, "site")
+import paths
+HERE = paths.APP
+BASE = os.path.join(HERE, "site")            # datos generados
+INDEX = os.path.join(paths.RES, "site")       # la página (solo lectura)
 try:
     CFG = json.load(open(os.path.join(HERE, "config.json"), encoding="utf-8"))
 except Exception:
@@ -26,13 +28,16 @@ CSP = ("default-src 'none'; script-src 'self' 'unsafe-inline'; "
 
 
 class Handler(BaseHTTPRequestHandler):
+    timeout = 10          # corta conexiones que se quedan colgadas (anti slowloris)
+    server_version = "mcdash"
+    sys_version = ""
     def do_GET(self):
         item = ALLOWED.get(self.path.split("?", 1)[0])
         if not item:
             self.send_error(404)
             return
         try:
-            body = open(os.path.join(BASE, item[0]), "rb").read()
+            body = open(os.path.join(INDEX if item[0] == "index.html" else BASE, item[0]), "rb").read()
         except OSError:
             self.send_error(503, "Datos no disponibles todavia: ejecuta build.py")
             return
@@ -55,6 +60,12 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+def run(port=None):
+    srv = ThreadingHTTPServer(("127.0.0.1", port or PORT), Handler)   # solo este equipo; el túnel entra por aquí
+    srv.daemon_threads = True
+    srv.serve_forever()
+
+
 if __name__ == "__main__":
     print(f"Sirviendo site/ en http://127.0.0.1:{PORT}/  (Ctrl+C para parar)")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    run()

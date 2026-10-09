@@ -15,3 +15,8 @@
 # Python
 __pycache__/
 *.pyc
+
+# compilación local del .exe
+/dist_exe/
+/build_tmp/
+*.spec
