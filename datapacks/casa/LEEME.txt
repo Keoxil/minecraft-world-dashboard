@@ -1,0 +1,7 @@
+Casa (Minecraft 26.3)
+
+/trigger casa  -> te lleva al sitio donde reapareces (tu cama o ancla de reaparición), también entre dimensiones. Sin esperas.
+No funciona durante un duelo del datapack PvP Duelos.
+
+Un datapack no puede crear un comando /casa a secas: lo más corto posible es /trigger casa.
+Instalar: copia Casa.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  y escribe /reload.

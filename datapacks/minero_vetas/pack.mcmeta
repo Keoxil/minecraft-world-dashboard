@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Minero de vetas: con un pico, al picar una mena se rompe toda la veta.",
+    "min_format": 121,
+    "max_format": 121
+  }
+}

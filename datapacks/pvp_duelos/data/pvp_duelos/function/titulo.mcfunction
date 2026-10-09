@@ -1,0 +1,1 @@
+$title @a[tag=pvp_titulo] title [{"type":"object","object":"player","player":{"id":$(u1)},"hat":true},{"text":" "},{"selector":"@a[tag=pvp_n1]","color":"gold"},{"text":"  VS  ","color":"red","bold":true},{"selector":"@a[tag=pvp_n2]","color":"gold","bold":false},{"text":" "},{"type":"object","object":"player","player":{"id":$(u2)},"hat":true}]

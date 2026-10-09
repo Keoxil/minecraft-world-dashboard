@@ -1,0 +1,34 @@
+PvP Duelos (Minecraft 26.3)
+
+Qué hace
+- Cuando un jugador golpea a otro, los DOS entran en "modo PvP" durante 60 segundos desde el último golpe entre jugadores.
+  Al empezar un duelo nuevo sale un título grande con las dos cabezas y un VS en medio.
+- Mientras alguien está en modo PvP, la regla keep_inventory se enciende sola: si un jugador cae en ese combate conserva su inventario y su experiencia.
+- En cuanto uno mata al otro, el duelo termina y el vencedor deja de estar protegido.
+- El daño se reparte en tres tipos:
+    1) Con un jugador detrás (espada, flecha, TNT encendido por alguien, cristal del End): cuenta como PvP.
+    2) Sin dueño (lava, fuego, caída, camas y anclas en el Nether, TNT sin encender por nadie): cuenta como PvP si el rival le pegó hace menos de 5 s, o si el rival está a 32 bloques o menos. Así sirven las trampas de lava, las camas explosivas, los empujones al vacío, etc.
+    3) De un mob, o de entorno estando el rival lejos: el modo PvP se CANCELA para todo el duelo y la regla se apaga al instante. Así nadie usa un duelo para salvar el inventario de otras muertes.
+- Meterse en lava o caer desde más de 10 bloques con el rival lejos también cancela.
+- Fuera del modo PvP la regla está apagada: las muertes naturales sueltan el inventario como siempre.
+
+Instalar (en el mundo del host)
+1. Copia PvP_Duelos.zip a:   <tu instancia>\saves\<tu mundo>\datapacks\
+2. En el juego escribe /reload (el host con trucos activados).
+3. Comprueba con:  /function pvp_duelos:estado
+4. Mira la vista previa del título con tu cabeza:  /function pvp_duelos:prueba
+
+Ajustes
+- Duración (en ticks, 20 = 1 s):   /scoreboard players set #duracion pvp_cfg 600
+- Modo estricto: solo cuenta como PvP el daño sin dueño si el rival le pegó hace menos de 5 s (sin la regla de los 32 bloques).
+  Activar:  /scoreboard players set #estricto pvp_cfg 1     Desactivar:  /scoreboard players set #estricto pvp_cfg 0
+
+Quitar
+- Borra el zip de datapacks y escribe /reload. Si quieres la regla apagada: /gamerule keep_inventory false
+
+Limitaciones (Minecraft no permite hacerlo mejor con datapacks)
+- keep_inventory es una regla global: durante un duelo, CUALQUIER jugador que muera, incluso uno ajeno al duelo, conserva su inventario.
+- Si el primer golpe de un combate ya mata a la víctima de una sola vez, no había modo PvP activo y suelta el inventario.
+- Un daño ajeno que mate de golpe (por ejemplo, una caída enorme) puede llegar a matar antes de que el modo se cancele.
+- La regla de los 32 bloques permite que alguien se tire a la lava junto a su rival y conserve el inventario. Si pasa, usad el modo estricto.
+- Un duelo solo empieza con el primer daño con jugador detrás: una cama explosiva como primer golpe no lo activa, aunque sí cuenta desde que ya hay duelo.

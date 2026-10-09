@@ -1,0 +1,14 @@
+Talar árboles (Minecraft 26.3)
+
+- Con un hacha en la mano y SIN agacharte, al picar un tronco cae el árbol entero (hasta 200 troncos, solo del mismo tipo).
+- Si te agachas, rompes solo ese tronco, como siempre.
+- Si debajo del tronco hay tierra, se replanta un brote automáticamente.
+- Solo tala árboles "de verdad": tiene que haber hojas naturales cerca, así no derriba una casa de troncos.
+- El hacha no se gasta con los troncos extra: el talado es gratis.
+
+Cada jugador: /trigger talar  -> activa o desactiva el talado solo para él.
+Todo el mundo: /scoreboard players set #activado talar_cfg 0  (apagar)   /  1  (encender)
+Máximo de troncos: /scoreboard players set #limite talar_cfg 100
+
+Instalar: copia Talar_Arboles.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  y escribe /reload.
+Quitar: borra el zip y /reload.

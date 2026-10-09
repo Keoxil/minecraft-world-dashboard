@@ -1,0 +1,4 @@
+Coordenadas de muerte (Minecraft 26.3)
+
+Cuando reapareces, un mensaje solo para ti te dice dónde has muerto (coordenadas y dimensión).
+Instalar: copia Coordenadas_Muerte.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  y escribe /reload.

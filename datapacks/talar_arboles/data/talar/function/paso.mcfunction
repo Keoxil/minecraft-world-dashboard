@@ -1,0 +1,27 @@
+# Macro ($(b) = tronco): revisa los 26 vecinos de este punto y tala los del mismo tipo
+$execute positioned ~-1 ~-1 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~-1 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~-1 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~0 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~0 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~0 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~1 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~1 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~-1 ~1 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~-1 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~-1 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~-1 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~0 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~0 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~1 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~1 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~0 ~1 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~-1 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~-1 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~-1 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~0 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~0 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~0 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~1 ~-1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~1 ~0 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp
+$execute positioned ~1 ~1 ~1 if block ~ ~ ~ $(b) run function talar:romper with storage talar:tmp

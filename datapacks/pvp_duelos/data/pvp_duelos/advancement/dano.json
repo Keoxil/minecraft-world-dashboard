@@ -1,0 +1,15 @@
+{
+  "criteria": {
+    "cualquier_dano": {
+      "trigger": "minecraft:entity_hurt_player"
+    }
+  },
+  "requirements": [
+    [
+      "cualquier_dano"
+    ]
+  ],
+  "rewards": {
+    "function": "pvp_duelos:dano"
+  }
+}

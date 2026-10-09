@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Modo PvP: duelo de 60 s; si te mata otro jugador conservas el inventario; cualquier otro daño cancela el modo.",
+    "min_format": 121,
+    "max_format": 121
+  }
+}

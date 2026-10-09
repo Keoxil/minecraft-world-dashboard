@@ -1,0 +1,8 @@
+{
+  "world": null,
+  "instances": [],
+  "language": "es_es",
+  "port": 8765,
+  "terrain": true,
+  "terrain_max_regions": 700
+}

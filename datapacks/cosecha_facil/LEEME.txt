@@ -1,0 +1,4 @@
+Cosecha fácil (Minecraft 26.3)
+
+Clic derecho en un cultivo maduro (trigo, zanahorias, patatas, remolacha o verruga del Nether): lo recoge y lo vuelve a plantar.
+Instalar: copia Cosecha_Facil.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  y escribe /reload.

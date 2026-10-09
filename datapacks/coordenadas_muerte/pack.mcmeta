@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Coordenadas de muerte: al reaparecer te dice dónde has muerto.",
+    "min_format": 121,
+    "max_format": 121
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "criteria": {
+    "mata_a_jugador": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": {
+          "type": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "minecraft:entity_type": "minecraft:player"
+          }
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "mata_a_jugador"
+    ]
+  ],
+  "rewards": {
+    "function": "pvp_duelos:victoria"
+  }
+}

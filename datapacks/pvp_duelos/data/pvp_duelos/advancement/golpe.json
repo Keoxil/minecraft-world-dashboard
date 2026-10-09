@@ -1,0 +1,24 @@
+{
+  "criteria": {
+    "herido_por_jugador": {
+      "trigger": "minecraft:entity_hurt_player",
+      "conditions": {
+        "damage": {
+          "type": {
+            "source_entity": {
+              "minecraft:entity_type": "minecraft:player"
+            }
+          }
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "herido_por_jugador"
+    ]
+  ],
+  "rewards": {
+    "function": "pvp_duelos:golpe"
+  }
+}

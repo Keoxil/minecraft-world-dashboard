@@ -1,0 +1,121 @@
+{
+  "criteria": {
+    "trigo": {
+      "trigger": "minecraft:any_block_use",
+      "conditions": {
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "minecraft:wheat",
+                  "state": {
+                    "age": "7"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "zanahoria": {
+      "trigger": "minecraft:any_block_use",
+      "conditions": {
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "minecraft:carrots",
+                  "state": {
+                    "age": "7"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "patata": {
+      "trigger": "minecraft:any_block_use",
+      "conditions": {
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "minecraft:potatoes",
+                  "state": {
+                    "age": "7"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "remolacha": {
+      "trigger": "minecraft:any_block_use",
+      "conditions": {
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "minecraft:beetroots",
+                  "state": {
+                    "age": "3"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "verruga": {
+      "trigger": "minecraft:any_block_use",
+      "conditions": {
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "minecraft:nether_wart",
+                  "state": {
+                    "age": "3"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "trigo",
+      "zanahoria",
+      "patata",
+      "remolacha",
+      "verruga"
+    ]
+  ],
+  "rewards": {
+    "function": "cosecha:cosechar"
+  }
+}

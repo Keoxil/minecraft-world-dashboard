@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Talar árboles: corta un tronco con un hacha y cae el árbol entero.",
+    "min_format": 121,
+    "max_format": 121
+  }
+}

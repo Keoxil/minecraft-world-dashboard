@@ -1,0 +1,12 @@
+Minero de vetas (Minecraft 26.3)
+
+- Con un PICO en la mano y SIN agacharte, al picar una mena se rompe toda la veta conectada (hasta 64 bloques).
+- Respeta Fortuna y Toque de seda del pico, y da la experiencia de cada mena.
+- Menas: carbón, hierro, cobre, oro, redstone, lapislázuli, diamante, esmeralda, oro del Nether y cuarzo.
+- Si te agachas, picas solo esa mena. El pico no se gasta con los bloques extra.
+
+Cada jugador: /trigger veta  -> lo activa o desactiva solo para él.
+Todo el mundo: /scoreboard players set #activado veta_cfg 0  (apagar)  /  1  (encender)
+Máximo de bloques: /scoreboard players set #limite veta_cfg 32
+
+Instalar: copia Minero_Vetas.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  y escribe /reload.

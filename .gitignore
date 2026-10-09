@@ -1,0 +1,17 @@
+# datos de los mundos y salidas generadas (contienen nombres de jugadores y coordenadas)
+/data/
+/dist/
+/site/data.js
+/site/history.js
+/site/terrain.js
+/site/.world
+/site/*.tmp
+/config.json
+/tools/
+*.log
+*.bak*
+.build.lock
+
+# Python
+__pycache__/
+*.pyc
