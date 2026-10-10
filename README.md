@@ -10,22 +10,23 @@ No mods or plugins needed: it reads the world's own files (statistics, advanceme
 
 ## Quick start (easiest)
 
-1. Download **`MinecraftWorldDashboard.exe`** from [Releases](../../releases/latest).
-2. Open Minecraft with your world.
-3. Double-click the `.exe`.
+1. Download **`MinecraftWorldDashboard-Setup.exe`** from [Releases](../../releases/latest) and run it (no administrator rights needed).
+2. Open **Minecraft World Dashboard** from your desktop or Start menu.
+3. Pick your world (or leave it on "Automatic") and click **Open my page**.
 
-That's it: nothing to install, no Python, no accounts. It reads your world, opens the page in your browser and keeps it up to date every minute. It also creates a **public link** with Cloudflare (it downloads that tool by itself, checking its official checksum) and copies it to your clipboard: send it to your friends and they can see the page. The first time, it asks if you want it to start automatically when you log in.
+That's it: nothing else to install, no Python, no accounts, no terminal. The app reads your world, serves the page and keeps it up to date every minute. Turn on **Public link** and it creates a link with Cloudflare (it downloads that tool by itself, checking its official checksum): press **Copy** and send it to your friends.
 
-- **Several worlds or launchers?** The first time, a small menu lets you choose the launcher and the world (or keep "automatic", which always follows the world you have open). Run it again with `--choose-world` to change it. If your Minecraft is in an unusual folder, choose `+` in that menu and paste the path.
-- **No public link:** run it with `--no-link`.
-- **Your data and settings** live in `%LOCALAPPDATA%\MinecraftWorldDashboard` (that is also where an optional `config.json` goes). To uninstall, delete the `.exe` and that folder (and, if you enabled automatic startup, run the program once with `--remove-startup`).
+- **Several worlds or launchers?** Use the dropdown to choose one, or leave "Automatic", which always follows the world you have open. **Add folder** covers unusual locations.
+- **Start with Windows** is a switch in the app (it starts minimized).
+- Closing the window stops sharing; minimize it to keep the page online.
+- **Your data and settings** live in `%LOCALAPPDATA%\MinecraftWorldDashboard`. To uninstall, use Windows Settings → Apps (this also removes that data).
 
-The link changes every time the program restarts. For a permanent one, use a [named Cloudflare tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (free account needed).
+The link changes every time the app restarts. For a permanent one, use a [named Cloudflare tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (free account needed).
 
 ### Is it safe?
 
-- **The `.exe` is not built by a person, it is built by GitHub**, in the open, from this code ([workflow](.github/workflows/release.yml)). You can verify it: `gh attestation verify MinecraftWorldDashboard.exe --repo <user>/minecraft-world-dashboard`, or compare its SHA-256 with `SHA256.txt`.
-- **Windows may warn you** ("Windows protected your PC") because the program has no paid code-signing certificate, which is normal for small projects. If you don't trust it, don't run it: all the code is here, it is short and uses only standard Python; you can run it with `python start.py`.
+- **The installer is not built by a person, it is built by GitHub**, in the open, from this code ([workflow](.github/workflows/release.yml)). You can verify it: `gh attestation verify MinecraftWorldDashboard-Setup.exe --repo <user>/minecraft-world-dashboard`, or compare its SHA-256 with `SHA256.txt`.
+- **Windows SmartScreen may show "Windows protected your PC"** the first time ("unknown publisher"). That is not a malware detection (Windows Defender scans it clean): SmartScreen shows it for any download that is not code-signed. Click *More info → Run anyway*. Signing removes it; see [SIGNING.md](SIGNING.md). If you don't trust it, don't run it: all the code is here and you can run it with `python gui.py`.
 - **It only reads** your world files; it never modifies them or touches passwords, accounts or the rest of your disk.
 - **Minimal exposure:** the server listens only on `127.0.0.1`, only answers GET, and only serves a fixed list of files (the page, its three data files and the ten language files). It serves no folders, runs nothing and accepts no uploads. The page has a strict Content Security Policy and escapes every name (tested with malicious player names).
 - **Cloudflare:** the tool is downloaded from the official GitHub releases and verified against its SHA-256 checksum before it runs. The tunnel is outbound only: no port is opened on your router.
@@ -36,7 +37,8 @@ The link changes every time the program restarts. For a permanent one, use a [na
 Requires Python 3.9+. Minecraft Java. Tested on **Windows** with **Minecraft 26.3** and the Modrinth launcher; stats, advancements and map also work on 1.21.1. Terrain and biomes need worlds from 1.18 or newer. Linux and macOS are supported in the code but untested.
 
 ```bash
-python start.py          # does everything: reads the world, serves the page, creates the link
+python gui.py            # the desktop window (same as the installed app)
+python start.py          # console version: reads the world, serves the page, creates the link
 python start.py --help   # all options
 ```
 

@@ -10,22 +10,23 @@ No necesita mods ni plugins: lee los archivos del propio mundo (estadísticas, l
 
 ## Empezar (lo más fácil)
 
-1. Descarga **`MinecraftWorldDashboard.exe`** desde [Releases](../../releases/latest).
-2. Abre Minecraft con tu mundo.
-3. Haz doble clic en el `.exe`.
+1. Descarga **`MinecraftWorldDashboard-Setup.exe`** desde [Releases](../../releases/latest) y ejecútalo (no pide permisos de administrador).
+2. Abre **Minecraft World Dashboard** desde el escritorio o el menú Inicio.
+3. Elige tu mundo (o déjalo en "Automatic") y pulsa **Open my page**.
 
-Eso es todo: no hace falta instalar nada, ni Python ni cuentas. Lee tu mundo, abre la página en tu navegador y la mantiene al día cada minuto. Además crea un **enlace público** con Cloudflare (descarga la herramienta ella sola, comprobando su firma oficial) y lo copia al portapapeles: se lo pasas a tus amigos y ya pueden verla. La primera vez te pregunta si quieres que arranque sola al iniciar sesión.
+Eso es todo: no hace falta instalar nada más, ni Python, ni cuentas, ni terminal. La app lee tu mundo, sirve la página y la mantiene al día cada minuto. Activa **Public link** y crea un enlace con Cloudflare (descarga la herramienta ella sola, comprobando su firma oficial): pulsa **Copy** y se lo pasas a tus amigos.
 
-- **¿Varios mundos o launchers?** La primera vez, un menú te deja elegir launcher y mundo (o dejar "automático", que sigue siempre al mundo que tengas abierto). Para cambiarlo, ejecuta el programa con `--choose-world`. Si tu Minecraft está en una carpeta rara, elige `+` en ese menú y pega la ruta.
-- **Sin enlace público:** ejecútalo con `--no-link`.
-- **Tus datos y ajustes** se guardan en `%LOCALAPPDATA%\MinecraftWorldDashboard` (ahí va también un `config.json` opcional). Para desinstalar, borra el `.exe` y esa carpeta (y, si activaste el arranque automático, ejecuta el programa una vez con `--remove-startup`).
+- **¿Varios mundos o launchers?** Elige uno en el desplegable, o déjalo en "Automatic", que sigue siempre al mundo que tengas abierto. **Add folder** cubre ubicaciones raras.
+- **Start with Windows** es un interruptor de la app (arranca minimizada).
+- Cerrar la ventana deja de compartir; minimízala para mantener la página en línea.
+- **Tus datos y ajustes** se guardan en `%LOCALAPPDATA%\MinecraftWorldDashboard`. Para desinstalar, usa Configuración de Windows → Aplicaciones (también borra esos datos).
 
-El enlace cambia cada vez que se reinicia el programa. Si quieres uno fijo, usa un [túnel con nombre de Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (necesita cuenta gratuita).
+El enlace cambia cada vez que se reinicia la app. Si quieres uno fijo, usa un [túnel con nombre de Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (necesita cuenta gratuita).
 
 ### ¿Es seguro?
 
-- **El `.exe` no lo compila una persona, lo compila GitHub** a la vista de todos desde este código ([workflow](.github/workflows/release.yml)). Puedes comprobarlo: `gh attestation verify MinecraftWorldDashboard.exe --repo <usuario>/minecraft-world-dashboard`, o comparar su SHA-256 con `SHA256.txt`.
-- **Windows puede avisarte** ("Windows protegió su PC") porque el programa no tiene firma de pago, algo normal en proyectos pequeños. Si no te fías, no lo ejecutes: todo el código está aquí, es corto y usa solo Python estándar; puedes lanzarlo con `python start.py`.
+- **El instalador no lo compila una persona, lo compila GitHub** a la vista de todos desde este código ([workflow](.github/workflows/release.yml)). Puedes comprobarlo: `gh attestation verify MinecraftWorldDashboard-Setup.exe --repo <usuario>/minecraft-world-dashboard`, o comparar su SHA-256 con `SHA256.txt`.
+- **Windows SmartScreen puede mostrar "Windows protegió su PC"** la primera vez ("editor desconocido"). No es una detección de malware (Windows Defender lo analiza y sale limpio): SmartScreen lo muestra con cualquier descarga que no esté firmada. Pulsa *Más información → Ejecutar de todas formas*. La firma lo elimina; mira [SIGNING.md](SIGNING.md). Si no te fías, no lo ejecutes: todo el código está aquí y puedes lanzarlo con `python gui.py`.
 - **Solo lee** los archivos de tus mundos; nunca los modifica ni toca contraseñas, cuentas ni el resto del disco.
 - **Superficie expuesta mínima:** el servidor escucha solo en `127.0.0.1`, solo responde a GET y solo entrega una lista fija de archivos (la página, sus 3 archivos de datos y los 10 de idioma). No sirve carpetas, no ejecuta nada ni acepta subidas. La página lleva una política CSP estricta y escapa todos los nombres (probado con nombres de jugador maliciosos).
 - **Cloudflare:** la herramienta se descarga de GitHub oficial y se verifica con su huella SHA-256 antes de ejecutarse. El túnel es saliente: no se abre ningún puerto en tu router.
@@ -36,7 +37,8 @@ El enlace cambia cada vez que se reinicia el programa. Si quieres uno fijo, usa 
 Requiere Python 3.9 o superior y Minecraft Java. Probado en **Windows** con **Minecraft 26.3** y el launcher de Modrinth; en mundos 1.21.1 también lee estadísticas, logros y mapa. El terreno y los biomas necesitan mundos de 1.18 o más nuevos. Linux y macOS están contemplados, pero no probados.
 
 ```bash
-python start.py          # lo hace todo: lee el mundo, sirve la página y crea el enlace
+python gui.py            # la ventana de escritorio (igual que la app instalada)
+python start.py          # versión de consola: lee el mundo, sirve la página y crea el enlace
 python start.py --help   # todas las opciones
 ```
 
