@@ -8,6 +8,7 @@ execute if score #disp talar_cfg matches ..7 run function talar:sin_durabilidad
 execute if score #disp talar_cfg matches ..7 run return 0
 $data modify storage talar:tmp b set value "$(id)"
 $data modify storage talar:tmp s set value "$(s)"
+$data modify storage talar:tmp l set value "minecraft:blocks/$(o)_leaves"
 scoreboard players set #hallado talar_cfg 0
 $execute at @s as @e[type=item,distance=..8,limit=1,sort=nearest,nbt={Age:0s,Item:{id:"$(id)"}}] at @s run function talar:iniciar
 $execute if score #hallado talar_cfg matches 0 at @s as @e[type=item,distance=..8,limit=1,sort=nearest,nbt={Age:1s,Item:{id:"$(id)"}}] at @s run function talar:iniciar

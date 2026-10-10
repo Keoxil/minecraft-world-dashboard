@@ -7,5 +7,6 @@ execute unless score #hojas talar_cfg matches 1 run scoreboard players set #hall
 execute unless score #hojas talar_cfg matches 1 run return 0
 scoreboard players operation #cuenta talar_cfg = #tope talar_cfg
 scoreboard players set #talados talar_cfg 0
-fill ~-4 ~-3 ~-4 ~4 ~4 ~4 air replace #minecraft:leaves[persistent=false]
+execute store result score #n talar_cfg run fill ~-4 ~-3 ~-4 ~4 ~4 ~4 air replace #minecraft:leaves[persistent=false]
+function talar:soltar with storage talar:tmp
 function talar:paso with storage talar:tmp

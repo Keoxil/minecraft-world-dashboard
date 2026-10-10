@@ -2,7 +2,7 @@ Talar árboles (Minecraft 26.3)
 
 - SOLO con un hacha en la mano (con la mano vacía u otra herramienta no hace nada) y SIN agacharte: al picar un tronco cae el árbol entero.
 - Funciona con árboles enormes: hasta 1000 troncos de una vez, solo del mismo tipo (también jungla gigante, abeto gigante, roble oscuro...).
-- Tala también todas las hojas naturales del árbol (las que ha puesto el jugador no se tocan). Las hojas no sueltan objetos.
+- Tala también todas las hojas naturales del árbol (las que ha puesto el jugador no se tocan). Las hojas sueltan lo mismo que si las rompieras (palos, brotes, manzanas) y NO gastan durabilidad: solo cuentan los troncos.
 - El hacha se gasta: cada tronco extra le quita 1 de durabilidad. Si le quedan menos de 8 puntos NO tala (solo rompes ese tronco) y un aviso te dice por qué.
   Si no aguanta un árbol grande, tala los troncos que aguante, te avisa de que queda a medias y el hacha se puede romper.
   (No tiene en cuenta Irrompibilidad ni Reparación.)
