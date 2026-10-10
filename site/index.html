@@ -12,7 +12,7 @@
 :root{
   --paper:#eaeee9; --paper2:#dfe5df; --ink:#16212b; --muted:#566673; --line:#c5cec8;
   --slate:#161c27; --slate2:#212b3b; --slate3:#2a3649; --mapfg:#d7e3ea;
-  --accent:#0f8f86; --warn:#c2362a;
+  --accent:#0f8f86; --warn:#c2362a; --gold:#9a6700;
   --p0:#2a78d6; --p1:#eb6834; --p2:#1baf7a; --p3:#4a3aa7; --p4:#eda100;
   --p5:#d6336c; --p6:#0e9fb3; --p7:#8a5a2b; --p8:#6aa512; --p9:#5f6b7a;
   --pixel:'Pixelify Sans', 'Courier New', monospace;
@@ -22,17 +22,24 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --paper:#10161e; --paper2:#18212c; --ink:#e6edf1; --muted:#93a4b0; --line:#2b3947;
-    --accent:#4fd6c8; --warn:#ff7b6b;
+    --accent:#4fd6c8; --warn:#ff7b6b; --gold:#f0b429;
     --p0:#3987e5; --p1:#d95926; --p2:#199e70; --p3:#e87ba4; --p4:#c98500;
     --p5:#f06595; --p6:#22b8cf; --p7:#b5835a; --p8:#94d82d; --p9:#9aa5b1;
   }
 }
 :root[data-theme="dark"]{
   --paper:#10161e; --paper2:#18212c; --ink:#e6edf1; --muted:#93a4b0; --line:#2b3947;
-  --accent:#4fd6c8; --warn:#ff7b6b;
+  --accent:#4fd6c8; --warn:#ff7b6b; --gold:#f0b429;
   --p0:#3987e5; --p1:#d95926; --p2:#199e70; --p3:#e87ba4; --p4:#c98500;
   --p5:#f06595; --p6:#22b8cf; --p7:#b5835a; --p8:#94d82d; --p9:#9aa5b1;
 }
+#lock{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--paper);padding:24px}
+#lock form{width:min(420px,100%);background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:14px;color:var(--ink)}
+#lock h2{margin:0;font:700 24px var(--pixel)}
+#lock p{margin:0;color:var(--muted)}
+#lock input{font:600 18px var(--num);letter-spacing:.08em;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+#lock button{font:700 16px var(--sans);padding:12px;border-radius:10px;border:0;background:var(--accent);color:#06201d;cursor:pointer}
+#lock .err{color:var(--warn);min-height:1.2em}
 *{box-sizing:border-box}
 :root{
   --map-bg:#dde6ee; --map-grid:rgba(60,90,120,.16); --map-ink:#16212b; --map-axis:rgba(22,33,43,.4);
@@ -346,7 +353,7 @@ thead th[aria-sort]{color:var(--accent)}
 tbody tr:last-child td{border-bottom:0}
 td .pn{display:inline-flex;align-items:center;gap:8px;font-weight:600}
 td .pn .head{width:22px;height:22px;font-size:12px;line-height:22px}
-td.best{font-weight:700;color:var(--accent)}
+td.best{font-weight:700;color:var(--gold)}
 foot,.foot{display:block;padding:36px 0 48px;color:var(--muted);font-size:13.5px}
 
 @media (max-width:980px){
@@ -596,7 +603,7 @@ document.addEventListener('error', ev=>{
 }, true);
 function headImg(p, cls){
   const c = colorOf[p.uuid];
-  const url = 'https://mc-heads.net/avatar/' + encodeURIComponent(p.uuid) + '/64';
+  const url = 'https://mc-heads.net/avatar/' + encodeURIComponent(p.skin || p.uuid) + '/64';
   return `<img class="head ${cls||''}" style="--pc:${c}" src="${url}" alt="" loading="lazy" data-c="${esc(c)}" data-l="${esc((p.name[0]||'?').toUpperCase())}">`;
 }
 function ago(iso){
@@ -728,7 +735,7 @@ function inkOn(cssVar){
 }
 function skinImg(p, cls){
   const c = colorOf[p.uuid], L = esc((p.name[0]||'?').toUpperCase());
-  const a = 'https://mc-heads.net/body/' + encodeURIComponent(p.uuid) + '/260';
+  const a = 'https://mc-heads.net/body/' + encodeURIComponent(p.skin || p.uuid) + '/260';
   const b = 'https://crafatar.com/renders/body/' + p.uuid + '?overlay&scale=6';
   return `<img class="skin ${cls||''}" src="${a}" alt="${esc(t('skin.alt',{name:p.name}))}" loading="lazy" data-alt="${esc(b)}" data-c="${esc(c)}" data-l="${L}">`;
 }
@@ -1045,7 +1052,14 @@ function renderTable(){
   if(sortKey) ps.sort((a,b)=>sortDir*((a[sortKey]||0)-(b[sortKey]||0)));
   else ps.sort((a,b)=>a.name.localeCompare(b.name));
   const best = {};
-  COLS.forEach(([k])=>{ const mx=Math.max(...D.players.map(p=>p[k]||0)); best[k]= mx>0?mx:null; });
+  // en las columnas «invertidas» (muertes, daño recibido...) gana el menor, igual que en las categorías de arriba;
+  // y, como allí, si todos van igual no hay mejor
+  const lowerKeys = new Set(METRICS.filter(m=>m.lowerBetter).map(m=>m.k));
+  COLS.forEach(([k])=>{
+    const vals = D.players.map(p=>p[k]||0), mx = Math.max(...vals), mn = Math.min(...vals);
+    if(lowerKeys.has(k)) best[k] = mx!==mn ? mn : null;
+    else best[k] = mx>0 ? mx : null;
+  });
   const th = COLS.map(([k,lk])=>`<th scope="col" data-k="${k}" ${sortKey===k?`aria-sort="${sortDir<0?'descending':'ascending'}"`:''} tabindex="0">${t(lk)}${sortKey===k?(sortDir<0?' ↓':' ↑'):''}</th>`).join('');
   const rows = ps.map(p=>`<tr><td><span class="pn" style="--pc:${colorOf[p.uuid]}">${headImg(p)}${esc(p.name)}</span></td>${
     COLS.map(([k,,f])=>`<td class="${best[k]!==null&&p[k]===best[k]?'best':''}">${f(p[k]||0)}</td>`).join('')}</tr>`).join('');
@@ -1177,6 +1191,7 @@ function fit(reveal){
 function centerOn(cx,cz,s){ const r=cv.getBoundingClientRect(); view.s=s||view.s; view.x=r.width/2-cx*view.s; view.y=r.height/2-cz*view.s; draw(); }
 function setDim(d){ if(!(d in D.regions)) return; curDim=d; hover=null; renderDimSeg(); renderLayerSeg(); renderLegend(); renderCover(); if(tl.on) tlLabel(); fit(true); }
 function draw(){
+  if(!D) return;
   const r=cv.getBoundingClientRect(), W=r.width, H=r.height;
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle=css('--map-bg')||'#161c27'; ctx.fillRect(0,0,W,H);
@@ -1506,7 +1521,75 @@ async function setLang(code, persist){
   sel.innerHTML = LANGS_LIST.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('');
   sel.onchange = ()=>setLang(sel.value, true);
 })();
-setLang(pickLang(), false).then(boot);
+/* ---------- datos cifrados: la clave de acceso solo existe en el navegador de quien mira ---------- */
+const ENC = { key: null, seen: {} };
+const LOCK_TXT = {
+  es: { h: 'Acceso privado', p: 'Escribe la clave de acceso para ver los datos.', b: 'Desbloquear', e: 'Clave incorrecta.', w: 'Descifrando…', f: 'Este navegador no permite descifrar (hace falta HTTPS).' },
+  en: { h: 'Private access', p: 'Enter the access key to see the data.', b: 'Unlock', e: 'Wrong key.', w: 'Decrypting…', f: 'This browser cannot decrypt (HTTPS is required).' }
+};
+const lockT = k => (LANG === 'es' ? LOCK_TXT.es : LOCK_TXT.en)[k];
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const b64e = u => { let s = ''; u.forEach(c => { s += String.fromCharCode(c); }); return btoa(s); };
+const normKey = s => String(s || '').replace(/[\s-]+/g, '').toUpperCase();
+async function deriveBits(pass, enc){
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(normKey(pass)), 'PBKDF2', false, ['deriveBits']);
+  return crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: b64d(enc.s), iterations: enc.it }, km, 256);
+}
+const aesKey = bits => crypto.subtle.importKey('raw', bits, 'AES-GCM', false, ['decrypt']);
+async function openBlob(name, enc, key){
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(enc.i), additionalData: new TextEncoder().encode(name) }, key, b64d(enc.c));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function askKey(msg){
+  return new Promise(res => {
+    let box = document.getElementById('lock');
+    if(!box){
+      box = document.createElement('div'); box.id = 'lock';
+      const f = document.createElement('form'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+      const h = document.createElement('h2'), p = document.createElement('p'), i = document.createElement('input'), e = document.createElement('div'), b = document.createElement('button');
+      i.type = 'password'; i.autocomplete = 'off'; i.spellcheck = false; i.setAttribute('aria-label', lockT('h'));
+      e.className = 'err'; e.setAttribute('role', 'alert'); b.type = 'submit';
+      h.textContent = lockT('h'); p.textContent = lockT('p'); b.textContent = lockT('b');
+      f.append(h, p, i, e, b); box.append(f); document.body.append(box);
+      f.addEventListener('submit', ev => { ev.preventDefault(); const v = i.value; i.value = ''; e.textContent = lockT('w'); box._res && box._res(v); });
+      i.focus();
+    }
+    box.querySelector('.err').textContent = msg || '';
+    box._res = res;
+  });
+}
+function closeLock(){ const b = document.getElementById('lock'); if(b) b.remove(); }
+async function unlockAll(){
+  const names = ['DATA', 'HISTORY', 'TERRAIN'];
+  const todo = names.filter(n => window[n + '_ENC'] && ENC.seen[n] !== window[n + '_ENC'].c);
+  if(!todo.length) return true;
+  if(!(window.crypto && crypto.subtle)){ await askKey(lockT('f')); return false; }
+  const probe = window[todo[0] + '_ENC'];
+  const attempt = async bits => { try{ const k = await aesKey(bits); await openBlob(todo[0], probe, k); return k; }catch(e){ return null; } };
+  if(!ENC.key){
+    let bits = null;
+    const h = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    try{
+      if(h){ bits = await deriveBits(h, probe); history.replaceState(null, '', location.pathname + location.search); }
+      else{ const sv = localStorage.getItem('mcdash-key'); if(sv) bits = b64d(sv).buffer; }
+    }catch(e){ bits = null; }
+    if(bits) ENC.key = await attempt(bits);
+    let msg = h ? lockT('e') : '';
+    while(!ENC.key){
+      const pass = await askKey(msg);
+      try{ bits = await deriveBits(pass, probe); ENC.key = await attempt(bits); }catch(e){ ENC.key = null; }
+      if(!ENC.key) msg = lockT('e');
+    }
+    try{ localStorage.setItem('mcdash-key', b64e(new Uint8Array(bits))); }catch(e){}
+    closeLock();
+  }
+  for(const n of todo){
+    try{ window[n] = await openBlob(n, window[n + '_ENC'], ENC.key); ENC.seen[n] = window[n + '_ENC'].c; }
+    catch(e){ ENC.key = null; try{ localStorage.removeItem('mcdash-key'); }catch(_){} return false; }
+  }
+  return true;
+}
+setLang(pickLang(), false).then(unlockAll).then(boot);
 if(new URLSearchParams(location.search).has('debug')) window.__t = { setData(d){ D=d; renderAll(false); ensureLayers(); draw(); }, get D(){ return D; } };
 
 /* ---------- fondo: cuadraditos que flotan sobre una rejilla de chunks ---------- */
@@ -1562,8 +1645,9 @@ if(new URLSearchParams(location.search).has('debug')) window.__t = { setData(d){
 /* recarga de datos cada 20 s; los "hace X min" avanzan solos */
 function pollData(){
   const s=document.createElement('script'); s.src='data.js?t='+Date.now();
-  s.onload=()=>{ if(window.DATA && D && window.DATA.worldId && D.worldId && window.DATA.worldId!==D.worldId){ location.reload(); return; }   /* otro mundo abierto: se recarga la página */
-    if(window.DATA && D && window.DATA.generatedAt!==D.generatedAt){ D=window.DATA; renderAll(false); ensureLayers(); draw(); } s.remove(); };
+  s.onload=()=>{ s.remove(); unlockAll().then(()=>{
+    if(window.DATA && D && window.DATA.worldId && D.worldId && window.DATA.worldId!==D.worldId){ location.reload(); return; }   /* otro mundo abierto: se recarga la página */
+    if(window.DATA && D && window.DATA.generatedAt!==D.generatedAt){ D=window.DATA; renderAll(false); ensureLayers(); draw(); } }); };
   s.onerror=()=>{ s.remove(); const st=$('stampTxt'); if(st) st.textContent=t('stamp.offline'); };
   document.head.appendChild(s);
 }
@@ -1571,7 +1655,7 @@ setInterval(pollData, 20000);
 setInterval(()=>{ if(D){ renderHead(); renderPlayers(); } }, 15000);
 function pollExtra(name, key, onNew){
   const sc = document.createElement('script'); sc.src = name + '?t=' + Date.now();
-  sc.onload = ()=>{ sc.remove(); try{ onNew(); }catch(e){} };
+  sc.onload = ()=>{ sc.remove(); unlockAll().then(()=>{ try{ onNew(); }catch(e){} }); };
   sc.onerror = ()=>sc.remove(); document.head.appendChild(sc);
 }
 setInterval(()=>pollExtra('history.js','HISTORY',()=>{ if(!D) return; renderRace(); renderAch(); tlSetup(); }), 60000);

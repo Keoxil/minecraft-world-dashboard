@@ -5,6 +5,7 @@ import json
 import os
 import re
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import paths
@@ -35,6 +36,24 @@ CSP = ("default-src 'none'; script-src 'self' {SCRIPT_HASHES}; object-src 'none'
 # extra names listed in config.json -> "allowed_hosts" (for a named tunnel).
 EXTRA_HOSTS = {str(h).lower() for h in CFG.get("allowed_hosts", [])}
 MAX_CONNECTIONS = 64
+RATE_LIMIT, RATE_WINDOW = 240, 60          # peticiones por visitante y minuto (la página usa unas 6-8)
+_hits = {}
+_hits_lock = threading.Lock()
+
+
+def rate_ok(who):
+    now = time.time()
+    with _hits_lock:
+        q = [t for t in _hits.get(who, ()) if now - t < RATE_WINDOW]
+        if len(q) >= RATE_LIMIT:
+            _hits[who] = q
+            return False
+        q.append(now)
+        _hits[who] = q
+        if len(_hits) > 5000:                                  # no crecer sin límite
+            for k in [k for k, v in _hits.items() if not v or now - v[-1] > RATE_WINDOW]:
+                _hits.pop(k, None)
+    return True
 _slots = threading.BoundedSemaphore(MAX_CONNECTIONS)
 
 
@@ -70,6 +89,9 @@ class Handler(BaseHTTPRequestHandler):
     timeout = 10          # corta conexiones que se quedan colgadas (anti slowloris)
     server_version = "mcdash"
     sys_version = ""
+
+    def version_string(self):
+        return ""                       # no anunciar qué software es
     def do_GET(self):
         # peticiones ambiguas (la base de los ataques de contrabando entre proxy y servidor): se rechazan sin más
         if (len(self.headers.get_all("Host") or []) != 1 or self.headers.get("Transfer-Encoding") is not None
@@ -83,6 +105,13 @@ class Handler(BaseHTTPRequestHandler):
         # another website must not be able to pull the data into its own page (<script src=...> from a different site)
         if (self.headers.get("Sec-Fetch-Site") or "same-origin") not in ("same-origin", "none"):
             self.send_error(403, "Cross-site requests are not allowed")
+            return
+        who = (self.headers.get("CF-Connecting-IP") or self.client_address[0])[:64]
+        if not rate_ok(who):
+            self.send_response(429)
+            self.send_header("Retry-After", "30")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
             return
         if not _slots.acquire(blocking=False):                         # too many simultaneous requests
             self.send_error(503, "Busy")
@@ -99,7 +128,15 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         try:
-            body = open(os.path.join(INDEX if (item[0] == "index.html" or item[0].startswith("lang/")) else BASE, item[0]), "rb").read()
+            name = item[0]
+            if name == "index.html":
+                mini = os.path.join(INDEX, "index.min.html")
+                try:
+                    if os.path.getmtime(mini) >= os.path.getmtime(os.path.join(INDEX, "index.html")):
+                        name = "index.min.html"
+                except OSError:
+                    pass
+            body = open(os.path.join(INDEX if (name.startswith("index") or name.startswith("lang/")) else BASE, name), "rb").read()
         except OSError:
             self.send_error(503, "Data not available yet: run the program first")
             return

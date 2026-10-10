@@ -9,10 +9,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nbt_mini
 import terrain
 import discover
+import secure
 
 DATA_DIR = os.path.join(HERE, "data")     # caché e historial de cada mundo (data/<mundo>/)
 SITE_DIR = os.path.join(HERE, "site")     # lo que lee la página
-PROFILE = WORLD = WORK = None             # los fija configure()
+PROFILE = WORLD = WORK = None
+WORLD_OPEN = False             # los fija configure()
 LANG_CODE = "es_es"
 FORCE_TERRAIN = False
 P = lambda n: os.path.join(WORK, n)       # archivos de trabajo del mundo actual
@@ -163,10 +165,23 @@ def save_json(path, obj):
 
 
 def write_js(path, var, obj):
-    """Escribe window.<var> = ...; de forma atómica: la página nunca lee un archivo a medias."""
+    """Escribe window.<var> = ...; de forma atómica: la página nunca lee un archivo a medias.
+    Con clave de acceso (secure.py) publica window.<var>_ENC = {...cifrado...}: nunca el dato en claro."""
     tmp = path + ".tmp"
+    text = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    if obj is not None and secure.passphrase() is not None:
+        try:
+            payload = f"window.{var}_ENC = " + json.dumps(secure.seal(var, text), separators=(",", ":")) + ";\n"
+        except Exception:
+            try:
+                os.remove(path)           # mejor sin datos que datos en claro de una escritura anterior
+            except OSError:
+                pass
+            raise
+    else:
+        payload = f"window.{var} = " + text + ";\n"
     with open(tmp, "w", encoding="utf-8") as fh:
-        fh.write(f"window.{var} = " + json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + ";\n")
+        fh.write(payload)
     for _ in range(10):
         try:
             os.replace(tmp, path)
@@ -210,7 +225,7 @@ def scan_region(path):
             ln = struct.unpack(">I", data[o * 4096:o * 4096 + 4])[0]
             comp = data[o * 4096 + 4]
             body = data[o * 4096 + 5:o * 4096 + 4 + ln]
-            raw = zlib.decompress(body) if comp == 2 else b""
+            raw = terrain.inflate(body) if comp == 2 else b""
             j = raw.find(KEY)
             t = struct.unpack(">q", raw[j + len(KEY):j + len(KEY) + 8])[0] if j >= 0 else 0
         except Exception:
@@ -248,7 +263,14 @@ def update_terrain(pool):
             if k not in c or abs(c[k]["mt"] - mt) > 1:
                 todo.append((k, f, nether))
                 meta.append(dim)
-    if todo or FORCE_TERRAIN:
+    # si se activa (o se quita) la clave de acceso hay que reescribir terrain.js aunque el terreno no haya cambiado:
+    # si no, se quedaría en claro (o cifrado con una clave que ya no vale)
+    try:
+        head = open(S("terrain.js"), encoding="utf-8").read(24)
+        cambio_cifrado = head.startswith("window.TERRAIN_ENC") != (secure.passphrase() is not None) and not head.startswith("window.TERRAIN = null")
+    except OSError:
+        cambio_cifrado = False
+    if todo or FORCE_TERRAIN or cambio_cifrado:
         for dim, (k, mt, (bl, bi)) in zip(meta, pool.map(terrain.work, todo)):
             cache[dim][k] = {"mt": mt, "s": bl, "b": bi}
         if todo:
@@ -392,6 +414,19 @@ def read_players(names):
     return players, achievements
 
 
+def _read_lines(path, limit=64 * 1024 * 1024):
+    """Líneas de un log (normal o .gz) leyendo como mucho `limit` bytes (del final, en los logs normales)."""
+    import gzip
+    gz = path.endswith(".gz")
+    with (gzip.open if gz else open)(path, "rb") as fh:
+        if not gz:
+            size = os.path.getsize(path)
+            if size > limit:
+                fh.seek(size - limit)
+        data = fh.read(limit)
+    return data.decode("utf-8", errors="replace").splitlines()
+
+
 JOIN_LEFT_RE = re.compile(r"\[Server thread/INFO\]: System chat: ([A-Za-z0-9_]{1,16}) (joined|left) the game$")
 STOP_RE = re.compile(r"\[Server thread/INFO\]: Stopping (singleplayer )?server")
 START_RE = re.compile(r"\[Server thread/INFO\]: Starting (integrated )?minecraft server")
@@ -404,7 +439,7 @@ def _log_state():
     ev = {}
     stopped = False
     try:
-        lines = open(log, encoding="utf-8", errors="replace").read().splitlines()
+        lines = _read_lines(log)
         mt = datetime.fromtimestamp(os.path.getmtime(log))
         day = mt.date()
         # reconstruye la fecha de cada línea retrocediendo desde la última modificación
@@ -435,10 +470,62 @@ def _log_state():
     return ev, stopped
 
 
+_SKIN_RE = re.compile(r"^[0-9a-f]{32,64}$")
+
+
+def attach_skins(players, ttl=6 * 3600, budget=8):
+    """Hash de la textura de skin de cada jugador, preguntado a Mojang (con caché).
+    mc-heads resuelve mal NOMBRE o UUID según la cuenta (devuelve Steve); con el hash de la textura siempre acierta."""
+    import base64
+    import urllib.request
+    path = P("skins.json")
+    cache = load_json(path, {})
+    now, used, dirty = time.time(), 0, False
+    for p in players:
+        u = str(p["uuid"]).replace("-", "").lower()
+        if not re.fullmatch(r"[0-9a-f]{32}", u):
+            continue
+        e = cache.get(u) or {}
+        if "h" in e and now - e.get("t", 0) < ttl:
+            if e["h"]:
+                p["skin"] = e["h"]
+            continue
+        if used >= budget:                                   # sin saturar a Mojang: unos pocos por pasada
+            if e.get("h"):
+                p["skin"] = e["h"]
+            continue
+        used += 1
+        try:
+            req = urllib.request.Request("https://sessionserver.mojang.com/session/minecraft/profile/" + u,
+                                         headers={"User-Agent": "minecraft-world-dashboard"})
+            with urllib.request.urlopen(req, timeout=4) as r:          # nosec B310 - https fijo
+                prof = json.loads(r.read(200000).decode("utf-8"))
+            h = None
+            for prop in prof.get("properties", []):
+                if prop.get("name") == "textures":
+                    tex = json.loads(base64.b64decode(prop["value"]))
+                    url = ((tex.get("textures") or {}).get("SKIN") or {}).get("url", "")
+                    cand = str(url).rstrip("/").rsplit("/", 1)[-1].lower()
+                    if _SKIN_RE.match(cand):
+                        h = cand
+            cache[u] = {"h": h, "t": now}
+            dirty = True
+            if h:
+                p["skin"] = h
+        except Exception:
+            cache[u] = {"h": e.get("h"), "t": now - ttl + 600}     # sin red o límite de Mojang: reintento en 10 min
+            dirty = True
+            if e.get("h"):
+                p["skin"] = e["h"]
+    if dirty:
+        save_json(path, cache)
+
+
 def mark_online(players):
     """Conexiones y desconexiones desde el latest.log del juego (hora real, sin depender del autoguardado)."""
     ev, stopped = _log_state()
-    running = discover.java_running()
+    # «conectado» solo si ESTE mundo está abierto: jugar a otro mundo (otro Java en marcha) no cuenta
+    running = discover.java_running() and WORLD_OPEN
     for p in players:
         e = ev.get(p["name"])
         p["online"] = bool(e and e[0] == "joined" and running and not stopped)
@@ -466,8 +553,7 @@ def log_events(names):
     jl_re = JOIN_LEFT_RE
     for f in files:
         try:
-            op = gzip.open if f.endswith(".gz") else open
-            lines = op(f, "rt", encoding="utf-8", errors="replace").read().splitlines()
+            lines = _read_lines(f)
         except OSError:
             continue
         base = os.path.basename(f)
@@ -591,7 +677,7 @@ def reconstruct_frames(players, achievements, names, t_start, t_end, step, now_t
 
 def configure():
     """Elige el mundo abierto (o el último usado) y prepara las rutas. Devuelve False si no hay ninguno."""
-    global PROFILE, WORLD, WORK, LANG_CODE, FORCE_TERRAIN
+    global PROFILE, WORLD, WORK, LANG_CODE, FORCE_TERRAIN, WORLD_OPEN
     cfg = load_json(os.path.join(HERE, "config.json"), {})
     LANG_CODE = cfg.get("language", "es_es")
     prefs = load_json(os.path.join(DATA_DIR, "preferencias.json"), {})
@@ -607,6 +693,7 @@ def configure():
         print("No Minecraft world found. Open Minecraft once with a world, or set your instance folder in config.json (see config.example.json).")
         return False
     PROFILE, WORLD = sel["instance"], sel["world"]
+    WORLD_OPEN = bool(sel.get("open"))
     WORK = os.path.join(DATA_DIR, discover.slug(PROFILE, WORLD))
     os.makedirs(WORK, exist_ok=True)
     os.makedirs(SITE_DIR, exist_ok=True)
@@ -641,6 +728,7 @@ def _main(t0):
     names = discover.read_names(PROFILE, WORLD)
 
     players, achievements = read_players(names)
+    attach_skins(players)
     mark_online(players)
 
     folder = os.path.basename(WORLD)

@@ -4,6 +4,15 @@ import json, os, struct, sys, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nbt_mini
 
+
+def inflate(body, limit=64 * 1024 * 1024):
+    """zlib con tope de tamaño: un archivo de región manipulado no puede agotar la memoria (bomba de descompresión)."""
+    d = zlib.decompressobj()
+    out = d.decompress(body, limit)
+    if d.unconsumed_tail:
+        raise ValueError("chunk demasiado grande")
+    return out
+
 # clase -> color (para la página); la primera regla que coincide gana
 CLASSES = {
     "w": "#2f5f9a",  # agua
@@ -245,7 +254,7 @@ def region_terrain(path, nether=False):
             ln = struct.unpack(">I", data[o * 4096:o * 4096 + 4])[0]
             comp = data[o * 4096 + 4]
             body = data[o * 4096 + 5:o * 4096 + 4 + ln]
-            raw = zlib.decompress(body) if comp == 2 else b""
+            raw = inflate(body) if comp == 2 else b""
             b, m = (chunk_samples_nether(raw) if nether else chunk_samples(raw)) if raw else ("....", "....")
         except Exception:
             b, m = "....", "...."

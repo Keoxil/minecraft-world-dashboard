@@ -25,3 +25,6 @@ __pycache__/
 /dist_app/
 /build_tmp/
 /build_version_info.txt
+
+# versión ofuscada local de la página (scripts/minify_page.py)
+/site/index.min.html
