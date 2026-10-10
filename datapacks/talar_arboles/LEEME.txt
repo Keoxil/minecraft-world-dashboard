@@ -1,14 +1,18 @@
 Talar árboles (Minecraft 26.3)
 
-- Con un hacha en la mano y SIN agacharte, al picar un tronco cae el árbol entero (hasta 200 troncos, solo del mismo tipo).
+- SOLO con un hacha en la mano (con la mano vacía u otra herramienta no hace nada) y SIN agacharte: al picar un tronco cae el árbol entero.
+- Funciona con árboles enormes: hasta 1000 troncos de una vez, solo del mismo tipo (también jungla gigante, abeto gigante, roble oscuro...).
+- Tala también todas las hojas naturales del árbol (las que ha puesto el jugador no se tocan). Las hojas no sueltan objetos.
+- El hacha se gasta: cada tronco extra le quita 1 de durabilidad. Si le quedan menos de 8 puntos NO tala (solo rompes ese tronco) y un aviso te dice por qué.
+  Si no aguanta un árbol grande, tala los troncos que aguante, te avisa de que queda a medias y el hacha se puede romper.
+  (No tiene en cuenta Irrompibilidad ni Reparación.)
 - Si te agachas, rompes solo ese tronco, como siempre.
 - Si debajo del tronco hay tierra, se replanta un brote automáticamente.
-- Solo tala árboles "de verdad": tiene que haber hojas naturales cerca, así no derriba una casa de troncos.
-- El hacha no se gasta con los troncos extra: el talado es gratis.
+- Solo tala árboles "de verdad": tiene que haber hojas naturales en la copa, así no derriba una casa de troncos.
 
 Cada jugador: /trigger talar  -> activa o desactiva el talado solo para él.
 Todo el mundo: /scoreboard players set #activado talar_cfg 0  (apagar)   /  1  (encender)
-Máximo de troncos: /scoreboard players set #limite talar_cfg 100
+Máximo de troncos: /scoreboard players set #limite talar_cfg 500
 
-Instalar: copia Talar_Arboles.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  y escribe /reload.
+Instalar: copia Talar_Arboles.zip a  <tu instancia>\saves\<tu mundo>\datapacks\  (sustituye el anterior) y escribe /reload.
 Quitar: borra el zip y /reload.

@@ -25,9 +25,11 @@ jobs:
           python-version: "3.12"
       - name: Build the app
         shell: pwsh
+        env:
+          REF_NAME: ${{ github.ref_name }}      # passed through the environment, never interpolated into the script
         run: |
           python -m pip install pyinstaller==6.11.1 customtkinter==5.2.2
-          $v = "${{ github.ref_name }}".TrimStart("v")
+          $v = $env:REF_NAME.TrimStart("v")
           if ($v -notmatch '^\d+\.\d+\.\d+$') { $v = "0.0.0" }   # branch builds (manual runs) get a placeholder version
           Set-Content -Path assets/version.txt -Value $v -NoNewline
           $parts = ($v -split '\.') + @('0','0','0')
@@ -71,7 +73,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          REF_NAME: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
         run: |
-          gh release create "${{ github.ref_name }}" installer/Output/MinecraftWorldDashboard-Setup.exe installer/Output/SHA256.txt `
-            --title "${{ github.ref_name }}" `
-            --notes "Download MinecraftWorldDashboard-Setup.exe, run it and open Minecraft World Dashboard from your desktop. To verify it: gh attestation verify MinecraftWorldDashboard-Setup.exe --repo ${{ github.repository }} (or compare its SHA-256 with SHA256.txt)."
+          gh release create $env:REF_NAME installer/Output/MinecraftWorldDashboard-Setup.exe installer/Output/SHA256.txt `
+            --title $env:REF_NAME `
+            --notes "Download MinecraftWorldDashboard-Setup.exe, run it and open Minecraft World Dashboard from your desktop. To verify it: gh attestation verify MinecraftWorldDashboard-Setup.exe --repo $env:REPO (or compare its SHA-256 with SHA256.txt)."

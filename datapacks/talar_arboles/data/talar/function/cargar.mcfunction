@@ -13,7 +13,10 @@ scoreboard objectives add tc_dark_oak minecraft.mined:minecraft.dark_oak_log
 scoreboard objectives add tc_mangrove minecraft.mined:minecraft.mangrove_log
 scoreboard objectives add tc_cherry minecraft.mined:minecraft.cherry_log
 scoreboard objectives add tc_pale_oak minecraft.mined:minecraft.pale_oak_log
-# Máximo de troncos que se talan de una vez (se cambia con /scoreboard players set #limite talar_cfg 100)
-execute unless score #limite talar_cfg matches 1.. run scoreboard players set #limite talar_cfg 200
+# Máximo de troncos que se talan de una vez (se cambia con /scoreboard players set #limite talar_cfg 500)
+# Versión 2: árboles enormes (1000 troncos), talan también las hojas y gastan la herramienta
+execute unless score #version talar_cfg matches 2 run scoreboard players set #limite talar_cfg 1000
+execute unless score #limite talar_cfg matches 1.. run scoreboard players set #limite talar_cfg 1000
+scoreboard players set #version talar_cfg 2
 # 1 = activado, 0 = desactivado para todo el mundo (/scoreboard players set #activado talar_cfg 0)
 execute unless score #activado talar_cfg matches 0..1 run scoreboard players set #activado talar_cfg 1
