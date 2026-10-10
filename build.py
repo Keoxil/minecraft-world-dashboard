@@ -532,6 +532,12 @@ def configure():
     global PROFILE, WORLD, WORK, LANG_CODE, FORCE_TERRAIN
     cfg = load_json(os.path.join(HERE, "config.json"), {})
     LANG_CODE = cfg.get("language", "es_es")
+    prefs = load_json(os.path.join(DATA_DIR, "preferencias.json"), {})
+    chosen = prefs.get("world")             # mundo elegido en el menú de arranque (config.json manda si también fija uno)
+    if chosen and not cfg.get("world") and os.path.isfile(os.path.join(chosen, "level.dat")):
+        cfg = dict(cfg, world=chosen)
+    if prefs.get("launcher") and not cfg.get("launcher"):
+        cfg = dict(cfg, launcher=prefs["launcher"])
     sel = discover.pick(cfg, DATA_DIR)
     if not sel:
         print("No encuentro ningún mundo de Minecraft. Indica la carpeta de tu instancia en config.json (mira config.example.json).")

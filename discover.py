@@ -55,6 +55,17 @@ def instance_roots(extra=()):
     return out
 
 
+def launcher_of(instance):
+    """Nombre del launcher al que pertenece una instancia (por su ruta)."""
+    p = instance.replace("\\", "/").lower()
+    for key, name in (("modrinthapp", "Modrinth"), ("com.modrinth", "Modrinth"), ("prismlauncher", "Prism Launcher"),
+                      ("multimc", "MultiMC"), ("curseforge", "CurseForge"), ("gdlauncher", "GDLauncher"),
+                      ("atlauncher", "ATLauncher"), ("/.minecraft", "Launcher oficial"), ("/minecraft", "Launcher oficial")):
+        if key in p:
+            return name
+    return "Otro"
+
+
 def worlds_of(instance):
     saves = os.path.join(instance, "saves")
     try:
@@ -112,6 +123,8 @@ def pick(config, data_dir):
         inst = os.path.dirname(os.path.dirname(w))
         return {"instance": inst, "world": w, "open": is_locked(w)}
     roots = instance_roots(config.get("instances", []))
+    if config.get("launcher"):                 # elegido en el menú de arranque: solo instancias de ese launcher
+        roots = [i for i in roots if launcher_of(i) == config["launcher"]] or roots
     allw = [(i, w) for i in roots for w in worlds_of(i)]
     locked = [(i, w) for i, w in allw if is_locked(w)]
     if not locked:
@@ -134,6 +147,16 @@ def pick(config, data_dir):
         i, w = max(allw, key=lambda iw: _mtime(iw[1]))
         return {"instance": i, "world": w, "open": False}
     return None
+
+
+def list_worlds(config):
+    """Todos los mundos encontrados, el abierto primero y después los más recientes: [{instance, world, name, open}]."""
+    out = []
+    for i in instance_roots(config.get("instances", [])):
+        for w in worlds_of(i):
+            out.append({"instance": i, "world": w, "name": os.path.basename(w), "launcher": launcher_of(i), "open": is_locked(w), "mtime": _mtime(w)})
+    out.sort(key=lambda x: (not x["open"], -x["mtime"]))
+    return out
 
 
 def _save_last(path, instance, world):

@@ -154,6 +154,69 @@ def selfcmd(mode):
     return [sys.executable, mode] if paths.FROZEN else [sys.executable, SELF, mode]
 
 
+def load_prefs():
+    try:
+        return json.load(open(os.path.join(DATA, "preferencias.json"), encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def save_prefs(**kw):
+    p = load_prefs()
+    p.update(kw)
+    os.makedirs(DATA, exist_ok=True)
+    json.dump(p, open(os.path.join(DATA, "preferencias.json"), "w", encoding="utf-8"))
+
+
+def choose_world(force=False):
+    """Menú para elegir el mundo. Solo pregunta si hay más de uno y nunca se ha elegido (o si se pide con --elegir-mundo)."""
+    import discover
+    prefs = load_prefs()
+    if not force and prefs.get("mundo_preguntado"):
+        return
+    worlds = discover.list_worlds(load_config())
+    if len(worlds) < 2 and not force:
+        return
+    if not worlds:
+        return
+    if not (sys.stdin and sys.stdin.isatty()):
+        return
+    def ask(prompt):
+        try:
+            return input(prompt).strip()
+        except EOFError:
+            return ""
+
+    # 1) launcher (solo si hay más de uno)
+    launchers = []
+    for w in worlds:
+        if w["launcher"] not in launchers:
+            launchers.append(w["launcher"])
+    chosen_l = None
+    if len(launchers) > 1:
+        print("\nHe encontrado Minecraft en estos launchers:")
+        print("  0) Todos / automático (recomendado)")
+        for n, l in enumerate(launchers, 1):
+            print(f"  {n}) {l}")
+        a = ask(f"Elige un número [0-{len(launchers)}] (Intro = 0): ")
+        if a.isdigit() and 1 <= int(a) <= len(launchers):
+            chosen_l = launchers[int(a) - 1]
+            worlds = [w for w in worlds if w["launcher"] == chosen_l]
+    # 2) mundo
+    print("\nMundos encontrados" + (f" en {chosen_l}" if chosen_l else "") + ":")
+    print("  0) Automático: el que tengas abierto en cada momento (recomendado)")
+    for n, w in enumerate(worlds, 1):
+        print(f"  {n}) {w['name']}   [{w['launcher']}: {os.path.basename(w['instance'])}]" + ("   <- abierto ahora" if w["open"] else ""))
+    a = ask(f"Elige un número [0-{len(worlds)}] (Intro = 0): ")
+    pick = int(a) if a.isdigit() and 0 <= int(a) <= len(worlds) else 0
+    if pick:
+        save_prefs(mundo_preguntado=True, world=worlds[pick - 1]["world"], launcher=None)
+        print(f"  -> Mundo fijado: {worlds[pick - 1]['name']}   (para cambiarlo: --elegir-mundo)\n")
+    else:
+        save_prefs(mundo_preguntado=True, world=None, launcher=chosen_l)
+        print("  -> Modo automático" + (f" solo con {chosen_l}" if chosen_l else "") + "   (para cambiarlo: --elegir-mundo)\n")
+
+
 def run_build():
     try:
         r = subprocess.run(selfcmd("--build"), cwd=HERE, capture_output=True, text=True,
@@ -201,6 +264,7 @@ def main():
     ap.add_argument("--sin-navegador", action="store_true", help="no abrir el navegador")
     ap.add_argument("--puerto", type=int, help="puerto local (por defecto 8765)")
     ap.add_argument("--intervalo", type=int, default=60, help="segundos entre actualizaciones (por defecto 60)")
+    ap.add_argument("--elegir-mundo", action="store_true", help="elegir de qué mundo se crea la página (o volver al modo automático)")
     ap.add_argument("--instalar-inicio", action="store_true")
     ap.add_argument("--quitar-inicio", action="store_true")
     args = ap.parse_args()
@@ -233,6 +297,8 @@ def main():
         pass
     open(pidfile, "w").write(str(os.getpid()))
 
+    if not args.silencioso:
+        choose_world(force=args.elegir_mundo)
     say("Leyendo tu mundo de Minecraft (la primera vez tarda un poco)...")
     out = run_build()
     say("  " + (out.splitlines()[-1] if out else "sin salida"))
@@ -325,7 +391,7 @@ def main():
                 ans = input("¿Quieres que esto se inicie solo al encender el ordenador? [s/N] ").strip().lower()
             except EOFError:
                 ans = ""
-            json.dump({"preguntado": True}, open(pref, "w"))
+            save_prefs(preguntado=True)
             if ans.startswith("s"):
                 instalar_inicio()
 
