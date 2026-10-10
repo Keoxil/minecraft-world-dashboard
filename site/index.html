@@ -14,6 +14,7 @@
   --slate:#161c27; --slate2:#212b3b; --slate3:#2a3649; --mapfg:#d7e3ea;
   --accent:#0f8f86; --warn:#c2362a;
   --p0:#2a78d6; --p1:#eb6834; --p2:#1baf7a; --p3:#4a3aa7; --p4:#eda100;
+  --p5:#d6336c; --p6:#0e9fb3; --p7:#8a5a2b; --p8:#6aa512; --p9:#5f6b7a;
   --pixel:'Pixelify Sans', 'Courier New', monospace;
   --num:'Silkscreen', 'Courier New', monospace;
   --sans:'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -23,12 +24,14 @@
     --paper:#10161e; --paper2:#18212c; --ink:#e6edf1; --muted:#93a4b0; --line:#2b3947;
     --accent:#4fd6c8; --warn:#ff7b6b;
     --p0:#3987e5; --p1:#d95926; --p2:#199e70; --p3:#e87ba4; --p4:#c98500;
+    --p5:#f06595; --p6:#22b8cf; --p7:#b5835a; --p8:#94d82d; --p9:#9aa5b1;
   }
 }
 :root[data-theme="dark"]{
   --paper:#10161e; --paper2:#18212c; --ink:#e6edf1; --muted:#93a4b0; --line:#2b3947;
   --accent:#4fd6c8; --warn:#ff7b6b;
   --p0:#3987e5; --p1:#d95926; --p2:#199e70; --p3:#e87ba4; --p4:#c98500;
+  --p5:#f06595; --p6:#22b8cf; --p7:#b5835a; --p8:#94d82d; --p9:#9aa5b1;
 }
 *{box-sizing:border-box}
 :root{
@@ -479,7 +482,7 @@ foot,.foot{display:block;padding:36px 0 48px;color:var(--muted);font-size:13.5px
 <script>
 (function(){
 'use strict';
-const PC = ['--p0','--p1','--p2','--p3','--p4'];
+const PC = ['--p0','--p1','--p2','--p3','--p4','--p5','--p6','--p7','--p8','--p9'];
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 /* ---------- idiomas ---------- */
 const LANGS_LIST = [['es','Español','es-ES'],['en','English','en-US'],['zh','中文','zh-CN'],['hi','हिन्दी','hi-IN'],['ar','العربية','ar-SA-u-nu-latn'],
@@ -579,10 +582,22 @@ const AWARDS = [
 let D = null, colorOf = {}, curDim = 'overworld', curMetric = 'diamonds', sortKey = null, sortDir = -1;
 let view = {x:0,y:0,s:4}, layers = {}, hover = null, rev = 1;
 
+/* imágenes que fallan: se sustituyen por la inicial (listener delegado; la CSP no permite manejadores en línea) */
+document.addEventListener('error', ev=>{
+  const im = ev.target;
+  if(!(im instanceof HTMLImageElement)) return;
+  const mk = (tag, cls)=>{ const e = document.createElement(tag); e.className = cls; e.style.setProperty('--pc', im.dataset.c || ''); e.textContent = im.dataset.l || '?'; im.replaceWith(e); };
+  if(im.classList.contains('skin')){
+    if(im.dataset.alt && !im.dataset.f){ im.dataset.f = '1'; im.src = im.dataset.alt; return; }
+    mk('div', 'skin ph');
+  } else if(im.classList.contains('head') && im.dataset.l !== undefined){
+    mk('span', 'head');
+  }
+}, true);
 function headImg(p, cls){
   const c = colorOf[p.uuid];
-  const url = 'https://mc-heads.net/avatar/' + encodeURIComponent(p.name) + '/64';
-  return `<img class="head ${cls||''}" style="--pc:${c}" src="${url}" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;head&quot; style=&quot;--pc:${c}&quot;>${esc(p.name[0]||'?').toUpperCase()}</span>'">`;
+  const url = 'https://mc-heads.net/avatar/' + encodeURIComponent(p.uuid) + '/64';
+  return `<img class="head ${cls||''}" style="--pc:${c}" src="${url}" alt="" loading="lazy" data-c="${esc(c)}" data-l="${esc((p.name[0]||'?').toUpperCase())}">`;
 }
 function ago(iso){
   if(!iso) return '—';
@@ -593,8 +608,16 @@ function ago(iso){
   return t('ago.d',{n:Math.round(m/1440)});
 }
 function assignColors(){
-  const names = [...D.players].sort((a,b)=>a.name.localeCompare(b.name));
-  names.forEach((p,i)=>{ colorOf[p.uuid] = `var(${PC[i%PC.length]})`; });
+  // el color sale del UUID (estable aunque entren jugadores nuevos) y, si choca, se prueba el siguiente libre
+  const n = PC.length, used = new Set();
+  [...D.players].sort((a,b)=> a.uuid < b.uuid ? -1 : 1).forEach(p=>{
+    let h = 0;
+    for(const ch of String(p.uuid)) h = (h*31 + ch.charCodeAt(0)) >>> 0;
+    let i = h % n, tries = 0;
+    while(used.has(i) && tries++ < n) i = (i+1) % n;
+    used.add(i);
+    colorOf[p.uuid] = `var(${PC[i]})`;
+  });
 }
 
 /* ---------- cabecera ---------- */
@@ -705,10 +728,9 @@ function inkOn(cssVar){
 }
 function skinImg(p, cls){
   const c = colorOf[p.uuid], L = esc((p.name[0]||'?').toUpperCase());
-  const a = 'https://mc-heads.net/body/' + encodeURIComponent(p.name) + '/260';
+  const a = 'https://mc-heads.net/body/' + encodeURIComponent(p.uuid) + '/260';
   const b = 'https://crafatar.com/renders/body/' + p.uuid + '?overlay&scale=6';
-  return `<img class="skin ${cls||''}" src="${a}" alt="${esc(t('skin.alt',{name:p.name}))}" loading="lazy"
-    onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${b}'}else{this.outerHTML='<div class=&quot;skin ph&quot; style=&quot;--pc:${c}&quot;>${L}</div>'}">`;
+  return `<img class="skin ${cls||''}" src="${a}" alt="${esc(t('skin.alt',{name:p.name}))}" loading="lazy" data-alt="${esc(b)}" data-c="${esc(c)}" data-l="${L}">`;
 }
 const RANK_EXCLUDE = ['playHours'];   // el tiempo jugado no puntúa: quien hostea siempre sería el primero
 function scores(){
@@ -741,7 +763,7 @@ function renderPodium(){
     // se construye una sola vez; después solo se actualiza en su sitio para no repetir la animación
     el.innerHTML = order.map(p=>{
       const rank = ps.indexOf(p)+1;
-      return `<div class="pod" data-u="${p.uuid}" style="--pc:${colorOf[p.uuid]};transition-delay:${(rank-1)*0.18}s" data-rank="${rank}">
+      return `<div class="pod" data-u="${esc(p.uuid)}" style="--pc:${colorOf[p.uuid]};transition-delay:${(rank-1)*0.18}s" data-rank="${rank}">
         ${iconSVG('crown','crown')}
         <div class="sk">${skinImg(p)}</div>
         <div class="nm">${esc(p.name)}</div>
@@ -752,7 +774,7 @@ function renderPodium(){
     podBuilt = true; podRevealed = false;
   }
   order.forEach((p,vi)=>{
-    const pod = el.querySelector(`.pod[data-u="${p.uuid}"]`); if(!pod) return;
+    const pod = el.querySelector(`.pod[data-u="${esc(p.uuid)}"]`); if(!pod) return;
     const rank = ps.indexOf(p)+1, h = Math.round(70 + 150*(pts[p.uuid]/max));
     pod.dataset.rank = rank; pod.style.order = vi; pod.style.setProperty('--h', h+'px');
     pod.querySelector('.pt').textContent = t('pod.pts',{n:fmt(pts[p.uuid]), p:pts[p.uuid]});
@@ -827,7 +849,7 @@ function renderRace(){
   if(race.built !== key){
     race.built = key;
     el.style.height = (ps.length*46)+'px';
-    el.innerHTML = ps.map(p=>`<div class="rrow" data-u="${p.uuid}" style="--pc:${colorOf[p.uuid]}"><div class="n">${headImg(p)}<span>${esc(p.name)}</span></div><div class="track"><div class="fill"></div></div><div class="v">0</div></div>`).join('');
+    el.innerHTML = ps.map(p=>`<div class="rrow" data-u="${esc(p.uuid)}" style="--pc:${colorOf[p.uuid]}"><div class="n">${headImg(p)}<span>${esc(p.name)}</span></div><div class="track"><div class="fill"></div></div><div class="v">0</div></div>`).join('');
   }
   const r = $('raceRange'); r.max = last; r.value = race.i; r.disabled = frames.length < 2;
   drawRace();
@@ -848,7 +870,7 @@ function drawRace(){
   const gmax = Math.max(1, ...frames.map(fr=>Math.max(0, ...Object.values(fr[1]).map(v=>v[mi]||0))));
   const order = [...D.players].sort((a,b)=>val(b.uuid)-val(a.uuid));
   order.forEach((p,rank)=>{
-    const row = document.querySelector(`#race .rrow[data-u="${p.uuid}"]`); if(!row) return;
+    const row = document.querySelector(`#race .rrow[data-u="${esc(p.uuid)}"]`); if(!row) return;
     row.style.transform = `translateY(${rank*46}px)`;
     row.querySelector('.fill').style.width = (val(p.uuid)/gmax*100).toFixed(1)+'%';
     row.querySelector('.v').textContent = fm(val(p.uuid));
@@ -903,7 +925,7 @@ function hearts(h){
   for(let i=0;i<10;i++) s += `<i class="${i<full?'on':(i===full&&half?'half':'')}"></i>`;
   return `<div class="hp" aria-label="${esc(t('pl.hp.aria',{h:h||0}))}">${s}</div>`;
 }
-const dimName = d => { const k='dim.'+d, r=t(k); return r===k ? d : r; };
+const dimName = d => { const k='dim.'+d, r=t(k); return r===k ? esc(d) : r; };
 function hm(iso){ return iso ? new Date(iso).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}) : ''; }
 function statusLine(p){
   if(p.online) return `<span class="st on">${p.lastEvent ? t('pl.since',{time:hm(p.lastEvent)}) : t('pl.on')}</span> · ${t('pl.posof',{ago:ago(p.lastSeen)})}`;
@@ -913,7 +935,7 @@ function statusLine(p){
 function renderPlayers(){
   const ps = [...D.players].sort((a,b)=> (b.online-a.online) || (b.lastEvent||b.lastSeen||'').localeCompare(a.lastEvent||a.lastSeen||''));
   $('plist').innerHTML = ps.length ? ps.map(p=>`
-    <button class="pl ${p.online?'':'off'}" type="button" data-u="${p.uuid}" style="--pc:${colorOf[p.uuid]}">
+    <button class="pl ${p.online?'':'off'}" type="button" data-u="${esc(p.uuid)}" style="--pc:${colorOf[p.uuid]}">
       ${headImg(p)}
       <div>
         <div class="nm"><span>${esc(p.name)}</span><small>${t('pl.lvl',{n:p.level??0})}</small></div>
@@ -985,18 +1007,18 @@ function renderBars(){
   if(!barsReady || el.children.length !== ps.length){
     el.style.height = (ps.length*BAR_ROW - 10) + 'px';
     el.innerHTML = ps.map(p=>`
-      <div class="bar" data-u="${p.uuid}" style="--pc:${colorOf[p.uuid]}">
+      <div class="bar" data-u="${esc(p.uuid)}" style="--pc:${colorOf[p.uuid]}">
         <div class="n">${headImg(p)}<span>${esc(p.name)}</span></div>
         <div class="track"><div class="fill"></div></div>
         <div class="v" data-val="0">0</div>
       </div>`).join('');
     barsReady = true;
     // primera aparición: las filas ya colocadas, y las barras crecen una vez
-    [...ps].sort(cmp).forEach((p,i)=>{ el.querySelector(`.bar[data-u="${p.uuid}"]`).style.transform = `translateY(${i*BAR_ROW}px)`; });
+    [...ps].sort(cmp).forEach((p,i)=>{ el.querySelector(`.bar[data-u="${esc(p.uuid)}"]`).style.transform = `translateY(${i*BAR_ROW}px)`; });
     void el.offsetWidth;
   }
   [...ps].sort(cmp).forEach((p,rank)=>{
-    const row = el.querySelector(`.bar[data-u="${p.uuid}"]`); if(!row) return;
+    const row = el.querySelector(`.bar[data-u="${esc(p.uuid)}"]`); if(!row) return;
     const val = p[m.k]||0;
     row.style.transform = `translateY(${rank*BAR_ROW}px)`;
     row.classList.toggle('first', hasLeader && val===best);        // misma regla en todas las categorías: todos los empatados en cabeza
@@ -1333,8 +1355,8 @@ function renderFoot(){
 /* ---------- tema ---------- */
 (function theme(){
   let saved=null; try{ saved=localStorage.getItem('mcdash-theme'); }catch(e){}
-  const q=new URLSearchParams(location.search).get('theme'); if(q) saved=q;
-  if(saved) document.documentElement.dataset.theme=saved;
+  const q=new URLSearchParams(location.search).get('theme'); if(q==='light'||q==='dark') saved=q;
+  if(saved==='light'||saved==='dark') document.documentElement.dataset.theme=saved;
   $('themeBtn').onclick=()=>{
     const dark = document.documentElement.dataset.theme==='dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
     const n = dark?'light':'dark'; document.documentElement.dataset.theme=n;

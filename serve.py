@@ -1,6 +1,9 @@
 """Servidor local mínimo: solo sirve lo imprescindible de site/ (lista blanca) y solo en 127.0.0.1."""
+import base64
+import hashlib
 import json
 import os
+import re
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -22,7 +25,7 @@ ALLOWED = {
     "/history.js": ("history.js", JS),
     "/terrain.js": ("terrain.js", JS),
 }
-CSP = ("default-src 'none'; script-src 'self' 'unsafe-inline'; "
+CSP = ("default-src 'none'; script-src 'self' {SCRIPT_HASHES}; object-src 'none'; "
        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; "
        "img-src 'self' data: https://mc-heads.net https://crafatar.com; connect-src 'self'; "
        "base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
@@ -47,11 +50,33 @@ def host_ok(host):
 LANG_FILES = {"/lang/%s.js" % c for c in ("es", "en", "zh", "hi", "ar", "fr", "pt", "ru", "de", "ja")}   # solo estos archivos de idioma
 
 
+_csp_cache = {}
+
+
+def csp_for(page):
+    """CSP con el hash de cada <script> en línea de la página: así un script inyectado no se ejecuta aunque llegue al HTML."""
+    key = hashlib.sha256(page).digest()
+    if key not in _csp_cache:
+        hashes = []
+        for m in re.finditer(rb"<script(?![^>]*\ssrc=)[^>]*>(.*?)</script>", page, re.S | re.I):
+            src = m.group(1).replace(b"\r\n", b"\n").replace(b"\r", b"\n")      # el navegador normaliza los saltos de línea antes de calcular el hash
+            hashes.append("'sha256-%s'" % base64.b64encode(hashlib.sha256(src).digest()).decode())
+        _csp_cache.clear()
+        _csp_cache[key] = CSP.replace("{SCRIPT_HASHES}", " ".join(hashes))
+    return _csp_cache[key]
+
+
 class Handler(BaseHTTPRequestHandler):
     timeout = 10          # corta conexiones que se quedan colgadas (anti slowloris)
     server_version = "mcdash"
     sys_version = ""
     def do_GET(self):
+        # peticiones ambiguas (la base de los ataques de contrabando entre proxy y servidor): se rechazan sin más
+        if (len(self.headers.get_all("Host") or []) != 1 or self.headers.get("Transfer-Encoding") is not None
+                or (self.headers.get("Content-Length") or "0").strip() not in ("", "0")):
+            self.close_connection = True
+            self.send_error(400, "Bad request")
+            return
         if not host_ok(self.headers.get("Host")):
             self.send_error(421, "Unknown host")
             return
@@ -63,11 +88,11 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(503, "Busy")
             return
         try:
-            self._serve()
+            self._serve(head=getattr(self, "_head", False))
         finally:
             _slots.release()
 
-    def _serve(self):
+    def _serve(self, head=False):
         path = self.path.split("?", 1)[0]
         item = ALLOWED.get(path) or ((path[1:], JS) if path in LANG_FILES else None)
         if not item:
@@ -88,11 +113,14 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
         self.send_header("Cross-Origin-Opener-Policy", "same-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
-        self.send_header("Content-Security-Policy", CSP)
+        self.send_header("Content-Security-Policy", csp_for(body) if item[0] == "index.html" else "default-src 'none'; frame-ancestors 'none'")
+        self.send_header("Strict-Transport-Security", "max-age=31536000")
         self.end_headers()
-        self.wfile.write(body)
+        if not head:
+            self.wfile.write(body)
 
     def do_HEAD(self):
+        self._head = True
         self.do_GET()
 
     def log_message(self, *a):

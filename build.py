@@ -283,11 +283,17 @@ UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA
 
 def read_players(names):
     players, achievements = [], []
-    for f in discover.stat_files(WORLD):
-        uuid = os.path.basename(f)[:-5]
+    ev, _ = _log_state()
+    files = discover.stat_files(WORLD)
+    have = {os.path.basename(f)[:-5].lower() for f in files}
+    src = [(os.path.basename(f)[:-5], f) for f in files]
+    # un jugador nuevo no tiene archivo de estadísticas hasta el siguiente autoguardado del mundo:
+    # se añade en cuanto el registro dice que ha entrado
+    src += [(u, None) for u, n in names.items() if u.lower() not in have and ev.get(n, ("",))[0] == "joined"]
+    for uuid, f in src:
         if not UUID_RE.match(uuid):                                   # ids end up inside the page's HTML: only real UUIDs are allowed
             continue
-        s = json.load(open(f, encoding="utf-8")).get("stats", {})
+        s = json.load(open(f, encoding="utf-8")).get("stats", {}) if f else {}
         c = s.get("minecraft:custom", {})
         mined = s.get("minecraft:mined", {})
         killed = s.get("minecraft:killed", {})
@@ -352,7 +358,7 @@ def read_players(names):
                         ts = max(datetime.strptime(d, "%Y-%m-%d %H:%M:%S %z") for d in dates).astimezone().isoformat(timespec="seconds")
                     except Exception:
                         ts = ""
-                achievements.append({"u": uuid, "id": k.split(":", 1)[-1], "t": adv_title(k), "ts": ts})
+                achievements.append({"u": uuid, "id": re.sub(r"[^a-z0-9_/.-]", "", k.split(":", 1)[-1].lower()), "t": adv_title(k), "ts": ts})
         p["advancements"] = adv
         # estado actual + equipo
         df = discover.player_file(WORLD, uuid)
@@ -361,7 +367,7 @@ def read_players(names):
                 d = nbt_mini.read_gz(df)
                 pos = d.get("Pos", [0, 0, 0])
                 p["pos"] = [round(pos[0]), round(pos[1]), round(pos[2])]
-                p["dim"] = d.get("Dimension", "minecraft:overworld").split(":")[-1]
+                p["dim"] = re.sub(r"[^a-z0-9_.-]", "", str(d.get("Dimension", "minecraft:overworld")).split(":")[-1].lower()) or "overworld"
                 p["health"] = d.get("Health", 20)
                 p["level"] = d.get("XpLevel", 0)
                 p["food"] = d.get("foodLevel", 20)
@@ -386,8 +392,13 @@ def read_players(names):
     return players, achievements
 
 
-def mark_online(players):
-    """Conexiones y desconexiones desde el latest.log del juego (hora real, sin depender del autoguardado)."""
+JOIN_LEFT_RE = re.compile(r"\[Server thread/INFO\]: System chat: ([A-Za-z0-9_]{1,16}) (joined|left) the game$")
+STOP_RE = re.compile(r"\[Server thread/INFO\]: Stopping (singleplayer )?server")
+START_RE = re.compile(r"\[Server thread/INFO\]: Starting (integrated )?minecraft server")
+
+
+def _log_state():
+    """Último evento de conexión de cada jugador en el latest.log y si el servidor está parado."""
     import re
     log = PROFILE + "/logs/latest.log"
     ev = {}
@@ -410,19 +421,34 @@ def mark_online(players):
             parsed.append((day, m.group(0)[1:9], ln[m.end():]))
         parsed.reverse()
         for d, hms, msg in parsed:
-            m = re.search(r"System chat: (\S+) (joined|left) the game", msg)
+            # ancladas al principio de la línea: lo que escribe un jugador en el chat va siempre precedido de «<nombre>»,
+            # así que no puede fabricar conexiones, desconexiones ni paradas del servidor
+            m = JOIN_LEFT_RE.match(msg)
             if m:
                 ev[m.group(1)] = (m.group(2), f"{d.isoformat()}T{hms}")
-            if "Stopping singleplayer server" in msg or "Stopping server" in msg:
+            if STOP_RE.match(msg):
                 stopped = True
-            if "Starting integrated" in msg or "Starting minecraft server" in msg:
+            if START_RE.match(msg):
                 stopped = False
     except OSError:
         pass
+    return ev, stopped
+
+
+def mark_online(players):
+    """Conexiones y desconexiones desde el latest.log del juego (hora real, sin depender del autoguardado)."""
+    ev, stopped = _log_state()
     running = discover.java_running()
     for p in players:
         e = ev.get(p["name"])
         p["online"] = bool(e and e[0] == "joined" and running and not stopped)
+        if e is None and running and not stopped:
+            # sin evento en el registro actual (se conectó antes de que empezara, p. ej. el anfitrión):
+            # el servidor solo reescribe los datos de quien está dentro, así que un guardado reciente = conectado
+            try:
+                p["online"] = time.time() - os.path.getmtime(discover.player_file(WORLD, p["uuid"])) < 360
+            except OSError:
+                pass
         p["lastEvent"] = fix_ts(e[1]) if e else None
         p["lastEventKind"] = e[0] if e else None
 
@@ -437,7 +463,7 @@ def log_events(names):
                           r"was pummeled|was impaled|was squashed|was pricked|was stung|was skewered|drowned|fell |hit the ground|burned|"
                           r"went up in flames|tried to swim in lava|starved|suffocated|died|blew up|walked into|withered away|froze to death|"
                           r"experienced kinetic energy|discovered the floor was lava|was struck|was roasted)(.*)$")
-    jl_re = re.compile(r"\[Server thread/INFO\]: System chat: (\S+) (joined|left) the game")
+    jl_re = JOIN_LEFT_RE
     for f in files:
         try:
             op = gzip.open if f.endswith(".gz") else open
@@ -469,11 +495,11 @@ def log_events(names):
         if not fwd:
             stamped.reverse()
         for t, msg in stamped:
-            m = jl_re.search(msg)
+            m = jl_re.match(msg)
             if m:
                 ev.append((t, m.group(2), m.group(1), None))
                 continue
-            m = death_re.search(msg)
+            m = death_re.match(msg)
             if m and m.group(1) in name_set:
                 killer = None
                 for nm in name_set:

@@ -224,20 +224,24 @@ def player_file(world, uuid):
 
 
 # ------------------------------------------------------------------ nombres de jugador
+NAME_RE = re.compile(r"^[A-Za-z0-9_]{1,16}$")      # nombres válidos de Minecraft: nada que pueda llevar HTML
+
+
 def read_names(instance, world):
     """UUID -> nombre, de usercache.json y, si falta alguno, de las líneas «UUID of player X is …» del registro."""
     names = {}
     for p in (os.path.join(instance, "usercache.json"), os.path.join(os.path.dirname(os.path.dirname(world)), "usercache.json")):
         try:
             for e in json.load(open(p, encoding="utf-8")):
-                names.setdefault(e["uuid"], e["name"])
+                if NAME_RE.match(str(e.get("name", ""))):
+                    names.setdefault(e["uuid"], e["name"])
         except Exception:
             pass
     logs = sorted(glob.glob(os.path.join(instance, "logs", "*.log")))
     for lg in logs[-3:]:
         try:
             for ln in open(lg, encoding="utf-8", errors="replace"):
-                m = re.search(r"UUID of player (\S+) is ([0-9a-fA-F-]{36})", ln)
+                m = re.match(r"\[[0-9:]{8}\] \[User Authenticator #\d+/INFO\]: UUID of player ([A-Za-z0-9_]{1,16}) is ([0-9a-fA-F-]{36})$", ln.rstrip())
                 if m:
                     names.setdefault(m.group(2).lower(), m.group(1))
         except OSError:
