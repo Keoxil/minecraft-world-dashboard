@@ -27,19 +27,23 @@ CSP = ("default-src 'none'; script-src 'self' 'unsafe-inline'; "
        "base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
 
 
+LANG_FILES = {"/lang/%s.js" % c for c in ("es", "en", "zh", "hi", "ar", "fr", "pt", "ru", "de", "ja")}   # solo estos archivos de idioma
+
+
 class Handler(BaseHTTPRequestHandler):
     timeout = 10          # corta conexiones que se quedan colgadas (anti slowloris)
     server_version = "mcdash"
     sys_version = ""
     def do_GET(self):
-        item = ALLOWED.get(self.path.split("?", 1)[0])
+        path = self.path.split("?", 1)[0]
+        item = ALLOWED.get(path) or ((path[1:], JS) if path in LANG_FILES else None)
         if not item:
             self.send_error(404)
             return
         try:
-            body = open(os.path.join(INDEX if item[0] == "index.html" else BASE, item[0]), "rb").read()
+            body = open(os.path.join(INDEX if (item[0] == "index.html" or item[0].startswith("lang/")) else BASE, item[0]), "rb").read()
         except OSError:
-            self.send_error(503, "Datos no disponibles todavia: ejecuta build.py")
+            self.send_error(503, "Data not available yet: run the program first")
             return
         self.send_response(200)
         self.send_header("Content-Type", item[1])
@@ -67,5 +71,5 @@ def run(port=None):
 
 
 if __name__ == "__main__":
-    print(f"Sirviendo site/ en http://127.0.0.1:{PORT}/  (Ctrl+C para parar)")
+    print(f"Serving site/ at http://127.0.0.1:{PORT}/  (Ctrl+C to stop)")
     run()

@@ -85,6 +85,11 @@ button{font:inherit;color:inherit}
 .stamp{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
 .dot{width:10px;height:10px;background:var(--accent);display:inline-block}
 .stamp.stale .dot{background:var(--warn)}
+/* idiomas de derecha a izquierda: el título (letra a letra) y los dígitos de los contadores se quedan en su orden */
+[dir=rtl] .top h1, [dir=rtl] .reel{direction:ltr}
+[dir=rtl] .top h1{text-align:right}
+.arow .tm{white-space:nowrap}
+.langsel{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 8px;font-size:13px;border-radius:2px;cursor:pointer;max-width:150px}
 .themebtn{border:1px solid var(--line);background:transparent;padding:6px 10px;cursor:pointer;font-size:13px;border-radius:2px}
 
 /* título que se monta bloque a bloque */
@@ -352,12 +357,13 @@ foot,.foot{display:block;padding:36px 0 48px;color:var(--muted);font-size:13.5px
 <div class="bg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><canvas id="bgc"></canvas></div>
 <header class="wrap top">
   <div>
-    <h1 id="title" aria-label="Mundo de Minecraft" title="¿Y si lo tocas siete veces seguidas?"></h1>
+    <h1 id="title" aria-label="Mundo de Minecraft" title="¿Y si lo tocas siete veces seguidas?" data-i18n-title="hint.title"></h1>
     <p class="sub" id="sub"></p>
   </div>
   <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-    <div class="stamp" id="stamp"><span class="dot"></span><span id="stampTxt">Cargando datos…</span></div>
-    <button class="themebtn" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+    <div class="stamp" id="stamp"><span class="dot"></span><span id="stampTxt" data-i18n="stamp.loading">Cargando datos…</span></div>
+    <select class="langsel" id="langSel" aria-label="Idioma" data-i18n-aria="lang.aria"></select>
+    <button class="themebtn" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro" data-i18n-aria="theme.aria" data-i18n="theme">Tema</button>
   </div>
 </header>
 <div class="wrap"><div class="odos" id="odos" role="list"></div></div>
@@ -366,17 +372,17 @@ foot,.foot{display:block;padding:36px 0 48px;color:var(--muted);font-size:13.5px
 <div class="wrap">
   <div class="stage">
     <div class="mapcol" id="mapcol">
-      <canvas id="map" aria-label="Mapa de chunks explorados"></canvas>
+      <canvas id="map" aria-label="Mapa de chunks explorados" data-i18n-aria="map.aria"></canvas>
       <div class="maptools">
-        <div class="seg" id="dimSeg" role="group" aria-label="Dimensión"></div>
-        <div class="seg layerseg" id="layerSeg" role="group" aria-label="Capa del mapa"></div>
-        <div class="seg"><button type="button" id="tlBtn" aria-pressed="false">Timelapse</button></div>
+        <div class="seg" id="dimSeg" role="group" aria-label="Dimensión" data-i18n-aria="dim.aria"></div>
+        <div class="seg layerseg" id="layerSeg" role="group" aria-label="Capa del mapa" data-i18n-aria="layer.aria"></div>
+        <div class="seg"><button type="button" id="tlBtn" aria-pressed="false" data-i18n="tl.btn">Timelapse</button></div>
       </div>
       <div class="maptools zoom">
         <div class="seg">
-          <button type="button" id="zin" aria-label="Acercar">+</button>
-          <button type="button" id="zout" aria-label="Alejar">−</button>
-          <button type="button" id="zfit">Centrar</button>
+          <button type="button" id="zin" aria-label="Acercar" data-i18n-aria="zoom.in">+</button>
+          <button type="button" id="zout" aria-label="Alejar" data-i18n-aria="zoom.out">−</button>
+          <button type="button" id="zfit" data-i18n="zoom.fit">Centrar</button>
         </div>
       </div>
       <div class="legend" id="legend">
@@ -387,23 +393,23 @@ foot,.foot{display:block;padding:36px 0 48px;color:var(--muted);font-size:13.5px
         <div class="cover" id="cover"></div>
       </div>
       <div class="tlbar" id="tlbar" hidden>
-        <button type="button" id="tlPlay" aria-label="Reproducir timelapse">▶</button>
-        <input type="range" id="tlRange" min="0" max="0" value="0" step="1" aria-label="Momento del timelapse">
+        <button type="button" id="tlPlay" aria-label="Reproducir timelapse" data-i18n-aria="tl.play.aria">▶</button>
+        <input type="range" id="tlRange" min="0" max="0" value="0" step="1" aria-label="Momento del timelapse" data-i18n-aria="tl.range.aria">
         <span class="tll" id="tlLabel"></span>
       </div>
       <div class="tlnote" id="tlNote" hidden></div>
       <div class="tip" id="tip"></div>
     </div>
-    <aside class="side" aria-label="Jugadores">
-      <h2>Jugadores</h2>
+    <aside class="side" aria-label="Jugadores" data-i18n-aria="players.aria">
+      <h2 data-i18n="players.h">Jugadores</h2>
       <div id="plist"></div>
     </aside>
   </div>
 </div>
 
 <section id="awardsSec"><div class="wrap">
-  <h2>Premios</h2>
-  <p class="lede">Quién va primero en cada cosa, según las estadísticas del mundo. <span class="hint-fina">Y hay uno más que no sale en esta lista.</span></p>
+  <h2 data-i18n="awards.h">Premios</h2>
+  <p class="lede"><span data-i18n="awards.lede">Quién va primero en cada cosa, según las estadísticas del mundo.</span> <span class="hint-fina" data-i18n="awards.hint">Y hay uno más que no sale en esta lista.</span></p>
   <div class="awards" id="awards"></div>
 </div></section>
 
@@ -411,68 +417,93 @@ foot,.foot{display:block;padding:36px 0 48px;color:var(--muted);font-size:13.5px
   <div class="slider" id="slider">
     <div class="slides" id="slides">
       <div class="slide slide-rank" id="slideRank">
-        <h2>Clasificación general</h2>
-        <p class="lede">Puntos por posición en todas las categorías menos el tiempo jugado. Donde menos es mejor (muertes, daño recibido, herramientas rotas) gana quien menos tiene.</p>
-        <div class="podium" id="podium" aria-label="Podio general"></div>
+        <h2 data-i18n="rank.h">Clasificación general</h2>
+        <p class="lede" data-i18n="rank.lede">Puntos por posición en todas las categorías menos el tiempo jugado. Donde menos es mejor (muertes, daño recibido, herramientas rotas) gana quien menos tiene.</p>
+        <div class="podium" id="podium" aria-label="Podio general" data-i18n-aria="podium.aria"></div>
         <p class="score" id="scoreNote"></p>
       </div>
       <div class="slide slide-egg" id="slideEgg" hidden aria-hidden="true"><div class="egg-card" id="eggCard"></div></div>
     </div>
-    <button type="button" class="sl-arrow sl-next" id="slNext" hidden aria-label="Ver el premio especial"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/></svg></button>
-    <button type="button" class="sl-arrow sl-prev" id="slPrev" hidden aria-label="Volver a la clasificación general"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/></svg></button>
+    <button type="button" class="sl-arrow sl-next" id="slNext" hidden aria-label="Ver el premio especial" data-i18n-aria="egg.next.aria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/></svg></button>
+    <button type="button" class="sl-arrow sl-prev" id="slPrev" hidden aria-label="Volver a la clasificación general" data-i18n-aria="egg.prev.aria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/></svg></button>
   </div>
-  <h2 style="font-size:24px;margin-top:6px">Por categoría</h2>
-  <p class="lede">Elige una categoría para ver cómo van los jugadores.</p>
-  <div class="tabs" id="tabs" role="group" aria-label="Categoría"></div>
+  <h2 style="font-size:24px;margin-top:6px" data-i18n="cat.h">Por categoría</h2>
+  <p class="lede" data-i18n="cat.lede">Elige una categoría para ver cómo van los jugadores.</p>
+  <div class="tabs" id="tabs" role="group" aria-label="Categoría" data-i18n-aria="cat.aria"></div>
   <p class="rnote" id="catNote" hidden></p>
   <div class="bars" id="bars"></div>
 </div></section>
 
 <section id="raceSec"><div class="wrap">
-  <h2>Carrera del ranking</h2>
-  <p class="lede">Cómo va cambiando la clasificación con el tiempo. Cada barra se mueve cuando alguien adelanta a otro.</p>
-  <div class="tabs" id="raceTabs" role="group" aria-label="Categoría de la carrera"></div>
+  <h2 data-i18n="race.h">Carrera del ranking</h2>
+  <p class="lede" data-i18n="race.lede">Cómo va cambiando la clasificación con el tiempo. Cada barra se mueve cuando alguien adelanta a otro.</p>
+  <div class="tabs" id="raceTabs" role="group" aria-label="Categoría de la carrera" data-i18n-aria="race.tabs.aria"></div>
   <div class="race" id="race"></div>
   <div class="rctl">
-    <button type="button" class="play" id="racePlay">▶ Ver</button>
-    <input type="range" id="raceRange" min="0" max="0" value="0" step="1" aria-label="Momento de la carrera">
-    <span class="rl" id="raceLabel"></span><span class="rest" id="raceEst" hidden>estimación</span>
+    <button type="button" class="play" id="racePlay" data-i18n="race.play">▶ Ver</button>
+    <input type="range" id="raceRange" min="0" max="0" value="0" step="1" aria-label="Momento de la carrera" data-i18n-aria="race.range.aria">
+    <span class="rl" id="raceLabel"></span><span class="rest" id="raceEst" hidden data-i18n="race.est">estimación</span>
   </div>
   <p class="rnote" id="raceNote"></p>
 </div></section>
 
 <section><div class="wrap">
-  <h2>Arena PvP</h2>
-  <p class="lede">Duelos entre jugadores. Cada espada es una kill y cada calavera una muerte a manos de otro jugador.</p>
+  <h2 data-i18n="pvp.h">Arena PvP</h2>
+  <p class="lede" data-i18n="pvp.lede">Duelos entre jugadores. Cada espada es una kill y cada calavera una muerte a manos de otro jugador.</p>
   <div id="duelnote"></div>
   <div class="arena" id="arena"></div>
 </div></section>
 
 <section id="achSec"><div class="wrap">
-  <h2>Historial de logros</h2>
-  <p class="lede">Los últimos 6 logros conseguidos, con la hora exacta de cada uno.</p>
-  <div class="tabs" id="achTabs" role="group" aria-label="Filtrar por jugador"></div>
+  <h2 data-i18n="ach.h">Historial de logros</h2>
+  <p class="lede" data-i18n="ach.lede">Los últimos 6 logros conseguidos, con la hora exacta de cada uno.</p>
+  <div class="tabs" id="achTabs" role="group" aria-label="Filtrar por jugador" data-i18n-aria="ach.aria"></div>
   <div class="ach" id="ach"></div>
 </div></section>
 
 <section><div class="wrap">
-  <h2>STATS</h2>
-  <p class="lede">Pulsa una columna para ordenar. En dorado, el mejor de cada una.</p>
+  <h2 data-i18n="stats.h">STATS</h2>
+  <p class="lede" data-i18n="stats.lede">Pulsa una columna para ordenar. En dorado, el mejor de cada una.</p>
   <div class="tw"><table id="tbl"></table></div>
-  <span class="foot" id="foot"></span><span class="zzz" tabindex="0" title="Lo que se hace después de comer… escríbelo con el teclado, sin buscar dónde." aria-hidden="true">zZz</span>
+  <span class="foot" id="foot"></span><span class="zzz" tabindex="0" title="Lo que se hace después de comer… escríbelo con el teclado, sin buscar dónde." data-i18n-title="hint.zzz" aria-hidden="true">zZz</span>
 </div></section>
 </main>
 
 <script src="data.js"></script>
 <script src="terrain.js"></script>
 <script src="history.js"></script>
+<script src="lang/es.js"></script>
+<script src="lang/en.js"></script>
 <script>
 (function(){
 'use strict';
 const PC = ['--p0','--p1','--p2','--p3','--p4'];
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const fmt = n => (typeof n==='number'?n:0).toLocaleString('es-ES');
-const fmt1 = n => (n||0).toLocaleString('es-ES',{maximumFractionDigits:1});
+/* ---------- idiomas ---------- */
+const LANGS_LIST = [['es','Español','es-ES'],['en','English','en-US'],['zh','中文','zh-CN'],['hi','हिन्दी','hi-IN'],['ar','العربية','ar-SA-u-nu-latn'],
+  ['fr','Français','fr-FR'],['pt','Português','pt-BR'],['ru','Русский','ru-RU'],['de','Deutsch','de-DE'],['ja','日本語','ja-JP']];
+window.LANGS = window.LANGS || {};
+let LANG = 'es', LOC = 'es-ES';
+function pluralIdx(n, len){
+  if(len===3){ const a=n%10, b=n%100; return (a===1&&b!==11)?0:(a>=2&&a<=4&&(b<10||b>=20))?1:2; }   // ruso
+  return (LANG==='fr'||LANG==='pt') ? (n<2?0:1) : (n===1?0:1);
+}
+function tLookup(k){
+  let s = LANGS[LANG] && LANGS[LANG][k];
+  if(s===undefined) s = LANGS.en && LANGS.en[k];
+  if(s===undefined) s = LANGS.es && LANGS.es[k];
+  return s;
+}
+function t(k, v){
+  const cnt = v ? (v.p!==undefined ? v.p : v.n) : undefined;       // número que decide el plural (v.n puede venir ya formateado)
+  let s = (cnt===0 ? tLookup(k+'.0') : undefined);                  // variante especial para cero
+  if(s===undefined) s = tLookup(k);
+  if(s===undefined) return k;
+  if(s.indexOf('|')>=0){ const parts = s.split('|'); s = parts[Math.min(pluralIdx(cnt===undefined ? 1 : cnt, parts.length), parts.length-1)]; }
+  return v ? s.replace(/\{(\w+)\}/g, (m,x)=> v[x]!==undefined ? v[x] : m) : s;
+}
+const fmt = n => (typeof n==='number'?n:0).toLocaleString(LOC);
+const fmt1 = n => (n||0).toLocaleString(LOC,{maximumFractionDigits:1});
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -495,6 +526,11 @@ const METRICS = [
   {k:'toolsBroken',label:'Herramientas rotas',unit:'herramientas',f:fmt,lowerBetter:true,lowerNote:'En esta categoría gana quien menos tiene: sin ninguna herramienta rota eres el primero.'},
   {k:'advancements',   label:'Logros',     unit:'logros', f:fmt},
 ];
+METRICS.forEach(m=>{
+  Object.defineProperty(m,'label',{get:()=>t('m.'+m.k)});
+  Object.defineProperty(m,'unit',{get:()=>t('u.'+m.k)});
+  if(m.lowerBetter) Object.defineProperty(m,'lowerNote',{get:()=>t('ln.'+m.k)});
+});
 const ICONS = {
   diamond:{pal:{A:'#e8fffb',B:'#5ff0de',C:'#1aa39a'},g:["..AAAA..",".ABBBBC.","ABBBBBBC","ACBBBBCC",".ACBBCC.","..ACCC..","...CC...","........"]},
   sword:{pal:{A:'#e9eff5',B:'#9fb2c4',C:'#8a5a2b',D:'#5b3a18'},g:[".......A","......AB",".....AB.","....AB..",".C.AB...","..CB....",".DC.....","D......."]},
@@ -518,24 +554,24 @@ function iconSVG(name, cls){
   return `<svg class="${cls||''}" viewBox="0 0 8 8" aria-hidden="true">${r}</svg>`;
 }
 const AWARDS = [
-  {k:'diamonds', i:'diamond',     t:'Rey del diamante',   d:n=>`${fmt(n)} menas de diamante picadas`},
-  {k:'mobKills', i:'sword',     t:'Cazador de mobs',    d:n=>`${fmt(n)} mobs derrotados`},
-  {k:'deaths', i:'skull',       t:'Alma en pena',       d:n=>`${fmt(n)} ${n==1?'muerte':'muertes'}`},
-  {k:'playerKills', i:'axe',  t:'Verdugo',            d:n=>`${fmt(n)} jugadores eliminados`},
-  {k:'distKm', i:'boot',       t:'Maratoniano',        d:n=>`${fmt1(n)} km recorridos`},
-  {k:'blocksMined', i:'pick',  t:'Topo',               d:n=>`${fmt(n)} bloques picados`},
-  {k:'jumps', i:'spring',        t:'Pies de muelle',     d:n=>`${fmt(n)} saltos`},
-  {k:'damageTaken', i:'shield',  t:'Saco de golpes',     d:n=>`${fmt(n)} ♥ de daño recibido`},
-  {k:'advancements', i:'trophy', t:'Cazalogros',         d:n=>`${fmt(n)} logros conseguidos`},
-  {k:'crafted', i:'craft',      t:'Manitas',            d:n=>`${fmt(n)} ítems fabricados`},
-  {k:'trades', i:'emerald',      t:'Mercader',           d:n=>`${fmt(n)} ${n==1?'tradeo realizado':'tradeos realizados'}`},
-  {k:'emeralds', i:'emerald',    t:'Magnate esmeralda',  d:n=>`${fmt(n)} esmeraldas conseguidas`},
-  {k:'damageDealt', i:'fist',    t:'Mano dura',          d:n=>`${fmt(n)} ♥ de daño infligido`},
-  {k:'shieldBlocked', i:'shield',t:'Muro',               d:n=>`${fmt(n)} ♥ bloqueados con el escudo`},
-  {k:'deaths', low:true, i:'heart',       t:'Inmortal',      d:n=>`solo ${fmt(n)} ${n==1?'muerte':'muertes'}`},
-  {k:'damageTaken', low:true, i:'shield', t:'Intocable',     d:n=>`solo ${fmt(n)} ♥ de daño recibido`},
-  {k:'pvpDeaths', low:true, i:'axe',      t:'Invicto',       d:n=>n? `solo ${fmt(n)} ${n==1?'derrota':'derrotas'} PvP` : 'ninguna derrota PvP'},
-  {k:'toolsBroken', low:true, i:'pick',   t:'Manos de seda', d:n=>n? `solo ${fmt(n)} ${n==1?'herramienta rota':'herramientas rotas'}` : 'ninguna herramienta rota'},
+  {id:'diamonds', k:'diamonds', i:'diamond'},
+  {id:'mobKills', k:'mobKills', i:'sword'},
+  {id:'deathsMost', k:'deaths', i:'skull'},
+  {id:'kills', k:'playerKills', i:'axe'},
+  {id:'dist', k:'distKm', i:'boot'},
+  {id:'blocks', k:'blocksMined', i:'pick'},
+  {id:'jumps', k:'jumps', i:'spring'},
+  {id:'dmgTaken', k:'damageTaken', i:'shield'},
+  {id:'adv', k:'advancements', i:'trophy'},
+  {id:'crafted', k:'crafted', i:'craft'},
+  {id:'trades', k:'trades', i:'emerald'},
+  {id:'emeralds', k:'emeralds', i:'emerald'},
+  {id:'dmgDealt', k:'damageDealt', i:'fist'},
+  {id:'shield', k:'shieldBlocked', i:'shield'},
+  {id:'deathsLeast', k:'deaths', low:true, i:'heart'},
+  {id:'dmgTakenLeast', k:'damageTaken', low:true, i:'shield'},
+  {id:'pvpDeathsLeast', k:'pvpDeaths', low:true, i:'axe'},
+  {id:'toolsLeast', k:'toolsBroken', low:true, i:'pick'},
 ];
 
 let D = null, colorOf = {}, curDim = 'overworld', curMetric = 'diamonds', sortKey = null, sortDir = -1;
@@ -549,10 +585,10 @@ function headImg(p, cls){
 function ago(iso){
   if(!iso) return '—';
   const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/60000));
-  if(m < 2) return 'ahora mismo';
-  if(m < 60) return `hace ${m} min`;
-  if(m < 1440) return `hace ${Math.round(m/60)} h`;
-  return `hace ${Math.round(m/1440)} d`;
+  if(m < 2) return t('ago.now');
+  if(m < 60) return t('ago.min',{n:m});
+  if(m < 1440) return t('ago.h',{n:Math.round(m/60)});
+  return t('ago.d',{n:Math.round(m/1440)});
 }
 function assignColors(){
   const names = [...D.players].sort((a,b)=>a.name.localeCompare(b.name));
@@ -563,20 +599,20 @@ function assignColors(){
 function renderHead(){
   const vis = Object.values(D.explored).reduce((a,e)=>a+e.visited,0);
   const km2 = ((D.explored.overworld||{visited:0}).visited*256)/1e6;
-  const ttl = D.world || 'Mundo';
+  const ttl = D.world || t('world.default');
   if($('title').dataset.t !== ttl){
     $('title').dataset.t = ttl;
     $('title').innerHTML = [...ttl].map((c,i)=>`<span style="animation-delay:${i*55}ms" aria-hidden="true">${esc(c)}</span>`).join('');
     $('title').setAttribute('aria-label', ttl);
   }
-  document.title = (D.world||'Mundo') + ' · estadísticas';
-  const dias = D.days ? `Día ${fmt1(D.days)} del mundo. ` : '';
+  document.title = (D.world||t('world.default')) + ' · ' + t('title.suffix');
+  const dias = D.days ? t('sub.day',{n:fmt1(D.days)}) + ' ' : '';
   const on = D.players.filter(p=>p.online).map(p=>p.name);
-  const conectados = on.length ? `Conectados ahora: ${on.join(', ')}. ` : 'Nadie conectado ahora. ';
-  $('sub').textContent = `${dias}${conectados}${D.players.length} jugadores han pisado ${fmt(vis)} chunks (${km2.toLocaleString('es-ES',{maximumFractionDigits:2})} km² de Overworld).`;
-  const t = new Date(D.generatedAt);
-  const mins = (Date.now()-t.getTime())/60000;
-  $('stampTxt').textContent = `Datos de las ${t.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} (${ago(D.generatedAt)})`;
+  const conectados = on.length ? t('sub.online',{names:on.join(', ')}) + ' ' : t('sub.nobody') + ' ';
+  $('sub').textContent = `${dias}${conectados}` + t('sub.main',{n:D.players.length, chunks:fmt(vis), km2:km2.toLocaleString(LOC,{maximumFractionDigits:2})});
+  const t0 = new Date(D.generatedAt);
+  const mins = (Date.now()-t0.getTime())/60000;
+  $('stampTxt').textContent = t('stamp.data',{time:t0.toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}), ago:ago(D.generatedAt)});
   $('stamp').classList.toggle('stale', mins > 30);
 }
 
@@ -593,28 +629,28 @@ function reelHTML(txt){
 /* Estadísticas disponibles para las tarjetas de arriba: en cada carga de la página se eligen 4 al azar (de las que no estén a cero) */
 const sumP = k => D.players.reduce((a,p)=>a+(p[k]||0),0);
 const ODO_POOL = [
-  {lb:'menas de diamante picadas', s:'mena de diamante picada',        f:fmt,  v:()=>sumP('diamonds')},
-  {lb:'mobs derrotados entre todos', s:'mob derrotado entre todos',      f:fmt,  v:()=>sumP('mobKills')},
-  {lb:'kilómetros recorridos',            f:fmt1, v:()=>sumP('distKm')},
-  {lb:'kilómetros andando',               f:fmt1, v:()=>sumP('walkKm')},
-  {lb:'chunks pisados en el Overworld', s:'chunk pisado en el Overworld',   f:fmt,  v:()=>(D.explored.overworld||{visited:0}).visited},
-  {lb:'chunks pisados en el Nether', s:'chunk pisado en el Nether',      f:fmt,  v:()=>(D.explored.the_nether||{visited:0}).visited},
-  {lb:'bloques picados', s:'bloque picado',                  f:fmt,  v:()=>sumP('blocksMined')},
-  {lb:'saltos dados', s:'salto dado',                     f:fmt,  v:()=>sumP('jumps')},
-  {lb:'objetos fabricados', s:'objeto fabricado',               f:fmt,  v:()=>sumP('crafted')},
-  {lb:'objetos recogidos', s:'objeto recogido',                f:fmt,  v:()=>sumP('items')},
-  {lb:'muertes entre todos', s:'muerte entre todos',              f:fmt,  v:()=>sumP('deaths')},
-  {lb:'puntos de daño infligidos', s:'punto de daño infligido',        f:fmt,  v:()=>sumP('damageDealt')},
-  {lb:'puntos de daño recibidos', s:'punto de daño recibido',         f:fmt,  v:()=>sumP('damageTaken')},
-  {lb:'puntos de daño bloqueados con escudo', s:'punto de daño bloqueado con escudo', f:fmt, v:()=>sumP('shieldBlocked')},
-  {lb:'disparos de arco y ballesta', s:'disparo de arco y ballesta',      f:fmt,  v:()=>sumP('shots')},
-  {lb:'tradeos con aldeanos', s:'tradeo con aldeanos',             f:fmt,  v:()=>sumP('trades')},
-  {lb:'esmeraldas conseguidas', s:'esmeralda conseguida',           f:fmt,  v:()=>sumP('emeralds')},
-  {lb:'logros conseguidos entre todos', s:'logro conseguido entre todos',   f:fmt,  v:()=>sumP('advancements')},
-  {lb:'horas jugadas entre todos',        f:fmt1, v:()=>sumP('playHours')},
-  {lb:'herramientas rotas', s:'herramienta rota',               f:fmt,  v:()=>sumP('toolsBroken')},
-  {lb:'peces pescados', s:'pez pescado',                   f:fmt,  v:()=>sumP('fish')},
-  {lb:'animales criados', s:'animal criado',                 f:fmt,  v:()=>sumP('bred')},
+  {id:'diamonds',  f:fmt,  v:()=>sumP('diamonds')},
+  {id:'mobKills',  f:fmt,  v:()=>sumP('mobKills')},
+  {id:'distKm',    f:fmt1, v:()=>sumP('distKm')},
+  {id:'walkKm',    f:fmt1, v:()=>sumP('walkKm')},
+  {id:'chunksOw',  f:fmt,  v:()=>(D.explored.overworld||{visited:0}).visited},
+  {id:'chunksNe',  f:fmt,  v:()=>(D.explored.the_nether||{visited:0}).visited},
+  {id:'blocksMined', f:fmt, v:()=>sumP('blocksMined')},
+  {id:'jumps',     f:fmt,  v:()=>sumP('jumps')},
+  {id:'crafted',   f:fmt,  v:()=>sumP('crafted')},
+  {id:'items',     f:fmt,  v:()=>sumP('items')},
+  {id:'deaths',    f:fmt,  v:()=>sumP('deaths')},
+  {id:'damageDealt', f:fmt, v:()=>sumP('damageDealt')},
+  {id:'damageTaken', f:fmt, v:()=>sumP('damageTaken')},
+  {id:'shieldBlocked', f:fmt, v:()=>sumP('shieldBlocked')},
+  {id:'shots',     f:fmt,  v:()=>sumP('shots')},
+  {id:'trades',    f:fmt,  v:()=>sumP('trades')},
+  {id:'emeralds',  f:fmt,  v:()=>sumP('emeralds')},
+  {id:'advancements', f:fmt, v:()=>sumP('advancements')},
+  {id:'playHours', f:fmt1, v:()=>sumP('playHours')},
+  {id:'toolsBroken', f:fmt, v:()=>sumP('toolsBroken')},
+  {id:'fish',      f:fmt,  v:()=>sumP('fish')},
+  {id:'bred',      f:fmt,  v:()=>sumP('bred')},
 ];
 let odoPick = null;
 function pickOdos(){
@@ -625,7 +661,7 @@ function pickOdos(){
 function odoTarget(c){ c.style.transform = `translateY(${-(+c.dataset.d)*1.3}em)`; }
 function renderOdos(){
   if(!odoPick) pickOdos();
-  const items = odoPick.map(i=>{ const o = ODO_POOL[i], txt = o.f(o.v()); return {lb:(txt==='1' && o.s) ? o.s : o.lb, txt}; });
+  const items = odoPick.map(i=>{ const o = ODO_POOL[i], txt = o.f(o.v()); return {lb:t('o.'+o.id,{n:txt==='1'?1:2}), txt}; });
   const box = $('odos'), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tileHTML = it => `${reelHTML(it.txt)}<div class="lb">${esc(it.lb)}</div>`;
   if(box.children.length !== items.length){
@@ -669,7 +705,7 @@ function skinImg(p, cls){
   const c = colorOf[p.uuid], L = esc((p.name[0]||'?').toUpperCase());
   const a = 'https://mc-heads.net/body/' + encodeURIComponent(p.name) + '/260';
   const b = 'https://crafatar.com/renders/body/' + p.uuid + '?overlay&scale=6';
-  return `<img class="skin ${cls||''}" src="${a}" alt="Skin de ${esc(p.name)}" loading="lazy"
+  return `<img class="skin ${cls||''}" src="${a}" alt="${esc(t('skin.alt',{name:p.name}))}" loading="lazy"
     onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${b}'}else{this.outerHTML='<div class=&quot;skin ph&quot; style=&quot;--pc:${c}&quot;>${L}</div>'}">`;
 }
 const RANK_EXCLUDE = ['playHours'];   // el tiempo jugado no puntúa: quien hostea siempre sería el primero
@@ -717,10 +753,10 @@ function renderPodium(){
     const pod = el.querySelector(`.pod[data-u="${p.uuid}"]`); if(!pod) return;
     const rank = ps.indexOf(p)+1, h = Math.round(70 + 150*(pts[p.uuid]/max));
     pod.dataset.rank = rank; pod.style.order = vi; pod.style.setProperty('--h', h+'px');
-    pod.querySelector('.pt').textContent = `${fmt(pts[p.uuid])} puntos`;
+    pod.querySelector('.pt').textContent = t('pod.pts',{n:fmt(pts[p.uuid]), p:pts[p.uuid]});
     const blk = pod.querySelector('.blk'); blk.textContent = rank; blk.style.color = inkOn(colorOf[p.uuid]);
   });
-  $('scoreNote').textContent = `Se puntúa en ${cats} categorías (las que están igualadas entre todos no cuentan): ${D.players.length} puntos al primero, uno menos al siguiente, y así hasta el último.`;
+  $('scoreNote').textContent = t('pod.note',{cats:cats, n:D.players.length});
   if(podRevealed) return;
   const pods = [...el.querySelectorAll('.pod')];
   const done = () => { podRevealed = true; setTimeout(()=>pods.forEach(x=>x.style.transitionDelay=''), 2500); };
@@ -736,34 +772,38 @@ function renderPodium(){
 
 /* ---------- historial de logros ---------- */
 let achFilter = 'all', achLimit = 6;
+function advName(a){                     // nombre del logro en el idioma elegido (si el juego lo tiene), si no el del build
+  const H = window.HISTORY, n = H && H.adv && H.adv[LANG] && H.adv[LANG][a.id];
+  return n || a.t;
+}
 function renderAch(){
   const H = window.HISTORY, el = $('ach'); if(!el) return;
   const list = (H && H.ach) ? H.ach.filter(a=>a.ts) : [];
   const byU = Object.fromEntries(D.players.map(p=>[p.uuid,p]));
-  $('achTabs').innerHTML = [['all','Todos']].concat(D.players.map(p=>[p.uuid,p.name])).map(([k,l])=>`<button type="button" data-u="${k}" aria-pressed="${k===achFilter}">${esc(l)}</button>`).join('');
+  $('achTabs').innerHTML = [['all',t('ach.all')]].concat(D.players.map(p=>[p.uuid,p.name])).map(([k,l])=>`<button type="button" data-u="${k}" aria-pressed="${k===achFilter}">${esc(l)}</button>`).join('');
   $('achTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{ achFilter=b.dataset.u; renderAch(); });
   const rows = list.filter(a=>achFilter==='all' || a.u===achFilter).filter(a=>byU[a.u]);
-  if(!rows.length){ el.innerHTML = '<p class="rnote">Todavía no hay logros registrados.</p>'; return; }
+  if(!rows.length){ el.innerHTML = '<p class="rnote">'+esc(t('ach.empty'))+'</p>'; return; }
   const today = new Date().toDateString(), yest = new Date(Date.now()-864e5).toDateString();
   let html = '', lastDay = '';
   rows.slice(0, achLimit).forEach(a=>{
     const d = new Date(a.ts), ds = d.toDateString();
     if(ds !== lastDay){
       lastDay = ds;
-      const label = ds===today ? 'Hoy' : ds===yest ? 'Ayer' : d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+      const label = ds===today ? t('ach.today') : ds===yest ? t('ach.yest') : d.toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'});
       html += `<div class="day">${esc(label[0].toUpperCase()+label.slice(1))}</div>`;
     }
     const p = byU[a.u];
-    html += `<div class="arow" style="--pc:${colorOf[p.uuid]}"><span class="tm">${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</span>${headImg(p)}<span class="tx"><b>${esc(p.name)}</b> consiguió <span class="tt">${iconSVG('trophy')}<b>${esc(a.t)}</b></span></span></div>`;
+    html += `<div class="arow" style="--pc:${colorOf[p.uuid]}"><span class="tm">${d.toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'})}</span>${headImg(p)}<span class="tx">${t('ach.row',{name:'<b>'+esc(p.name)+'</b>', ach:'<span class="tt">'+iconSVG('trophy')+'<b>'+esc(advName(a))+'</b></span>'})}</span></div>`;
   });
   el.innerHTML = html;
 }
 
 /* ---------- carrera del ranking ---------- */
 const race = {k:'advancements', i:0, playing:false, timer:0, built:'', lastLen:undefined};
-const RACE_LABEL = {diamonds:'Diamantes',mobKills:'Mobs',distKm:'Distancia',playHours:'Tiempo',blocksMined:'Bloques',advancements:'Logros',jumps:'Saltos',crafted:'Fabricado',damageDealt:'Daño hecho',deaths:'Muertes',playerKills:'Kills PvP',pvpDeaths:'Muertes PvP'};
+const raceLabel = k => t('m.'+k);
 const RACE_FMT = {distKm:fmt1, playHours:fmt1};
-function raceStop(){ race.playing=false; clearInterval(race.timer); const b=$('racePlay'); if(b) b.textContent='▶ Ver'; }
+function raceStop(){ race.playing=false; clearInterval(race.timer); const b=$('racePlay'); if(b) b.textContent=t('race.play'); }
 // fotogramas reconstruidos desde la creación + los grabados en directo; solo los que tienen datos de esa categoría
 function raceFrames(k){
   const H = window.HISTORY; if(!H) return [];
@@ -773,9 +813,9 @@ function raceFrames(k){
 function renderRace(){
   const H = window.HISTORY, el = $('race'); if(!el) return;
   const frames = raceFrames(race.k), mi = H ? H.metrics.indexOf(race.k) : -1;
-  $('raceTabs').innerHTML = (H?H.metrics:[]).map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===race.k}">${RACE_LABEL[k]||k}</button>`).join('');
+  $('raceTabs').innerHTML = (H?H.metrics:[]).map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===race.k}">${raceLabel(k)}</button>`).join('');
   $('raceTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{ race.k=b.dataset.k; race.built=''; race.lastLen=undefined; raceStop(); renderRace(); });
-  if(!H || mi<0 || !frames.length){ el.style.height='0'; el.innerHTML=''; $('raceNote').textContent='Aún no hay historial. Se va grabando solo mientras se juega.'; return; }
+  if(!H || mi<0 || !frames.length){ el.style.height='0'; el.innerHTML=''; $('raceNote').textContent=t('race.nohist'); return; }
   const last = frames.length-1, atEnd = race.lastLen===undefined || race.i >= race.lastLen-1;
   if(atEnd || race.i>last) race.i = last;
   race.lastLen = frames.length;
@@ -789,13 +829,13 @@ function renderRace(){
   const r = $('raceRange'); r.max = last; r.value = race.i; r.disabled = frames.length < 2;
   drawRace();
   const real = (H.preMetrics||[]).indexOf(race.k) >= 0, est = (H.preEstimated||[]).indexOf(race.k) >= 0;
-  const since = new Date(frames[0][0]).toLocaleString('es-ES',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
-  const rec = H.snaps && H.snaps[0] ? new Date(H.snaps[0][0]).toLocaleString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '';
+  const since = new Date(frames[0][0]).toLocaleString(LOC,{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  const rec = H.snaps && H.snaps[0] ? new Date(H.snaps[0][0]).toLocaleString(LOC,{hour:'2-digit',minute:'2-digit'}) : '';
   $('raceNote').textContent = real
-    ? `Reconstruido desde que se creó el mundo (${since}) con los logros y los registros de conexión del juego. ${frames.length} momentos.`
+    ? t('race.note.real',{since:since, n:frames.length})
     : est
-      ? `Antes de las ${rec} Minecraft no guardó cuándo ocurría esto, así que esa parte es una estimación (rayada): reparte el total de cada jugador según el tiempo que llevaba jugado. Los adelantamientos de ese tramo pueden no ser exactos. Desde las ${rec} son datos reales. ${frames.length} momentos.`
-      : `Esta categoría solo se ha podido grabar desde ${since}: antes de eso Minecraft no guardó cuándo ocurría. ${frames.length} ${frames.length===1?'momento':'momentos'}.`;
+      ? t('race.note.est',{rec:rec, n:frames.length})
+      : t('race.note.part',{since:since, n:frames.length});
 }
 function drawRace(){
   const H = window.HISTORY; if(!H) return;
@@ -813,7 +853,7 @@ function drawRace(){
   const isEst = (H.preEstimated||[]).indexOf(race.k) >= 0 && (H.pre||[]).indexOf(f) >= 0;
   document.querySelectorAll('#race .rrow').forEach(r=>r.classList.toggle('est', isEst));
   const eb = $('raceEst'); if(eb) eb.hidden = !isEst;
-  $('raceLabel').textContent = new Date(f[0]).toLocaleString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  $('raceLabel').textContent = new Date(f[0]).toLocaleString(LOC,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 (function bindRace(){
   const rr = $('raceRange'), pb = $('racePlay');
@@ -822,7 +862,7 @@ function drawRace(){
     if(race.playing){ raceStop(); return; }
     const n = raceFrames(race.k).length; if(n<2) return;
     if(race.i >= n-1) race.i = 0;
-    race.playing = true; pb.textContent = '⏸ Parar';
+    race.playing = true; pb.textContent = t('race.stop');
     const every = Math.max(120, Math.min(800, 14000/n));
     race.timer = setInterval(()=>{ race.i++; if(race.i >= n-1){ race.i = n-1; raceStop(); } rr.value = race.i; drawRace(); }, every);
   };
@@ -838,18 +878,18 @@ function renderArena(){
   const kd = p => p.pvpDeaths ? p.playerKills/p.pvpDeaths : p.playerKills;
   const ps = [...D.players].sort((a,b)=> kd(b)-kd(a) || b.playerKills-a.playerKills || (b.damageDealt||0)-(a.damageDealt||0));
   const total = ps.reduce((a,p)=>a+(p.playerKills||0),0);
-  $('duelnote').innerHTML = total ? '' : `<p class="duelnote"><b>Todavía no ha habido ningún duelo.</b> El primero que tumbe a otro jugador abrirá la clasificación. Mientras, se ordena por daño hecho.</p>`;
+  $('duelnote').innerHTML = total ? '' : `<p class="duelnote">${t('arena.none')}</p>`;
   $('arena').innerHTML = ps.map(p=>`
     <div class="fighter" style="--pc:${colorOf[p.uuid]}">
       <div class="who">${headImg(p)}<span>${esc(p.name)}</span></div>
-      <div class="k"><span class="lbl">Kills</span><div class="tally">${tally(p.playerKills||0,'sword','Ninguna')}</div></div>
-      <div class="c"><span class="lbl">Combate</span><div class="chips">
-        <span>Daño hecho <b>${fmt(p.damageDealt||0)}</b></span>
-        <span>Recibido <b>${fmt(p.damageTaken||0)}</b></span>
-        <span>Escudo <b>${fmt(p.shieldBlocked||0)}</b></span>
-        <span>Disparos <b>${fmt(p.shots||0)}</b></span>
-      </div><div class="tally" style="margin-top:8px"><span class="lbl" style="margin:0 6px 0 0">Muertes PvP</span>${tally(p.pvpDeaths||0,'skull','Ninguna')}</div></div>
-      <div class="kd">${(Math.round(kd(p)*10)/10).toLocaleString('es-ES')}<small>K/D</small></div>
+      <div class="k"><span class="lbl">${t('arena.kills')}</span><div class="tally">${tally(p.playerKills||0,'sword',t('arena.nobody'))}</div></div>
+      <div class="c"><span class="lbl">${t('arena.combat')}</span><div class="chips">
+        <span>${t('arena.dealt')} <b>${fmt(p.damageDealt||0)}</b></span>
+        <span>${t('arena.taken')} <b>${fmt(p.damageTaken||0)}</b></span>
+        <span>${t('arena.shield')} <b>${fmt(p.shieldBlocked||0)}</b></span>
+        <span>${t('arena.shots')} <b>${fmt(p.shots||0)}</b></span>
+      </div><div class="tally" style="margin-top:8px"><span class="lbl" style="margin:0 6px 0 0">${t('arena.pvpdeaths')}</span>${tally(p.pvpDeaths||0,'skull',t('arena.nobody'))}</div></div>
+      <div class="kd">${(Math.round(kd(p)*10)/10).toLocaleString(LOC)}<small>${t('arena.kd')}</small></div>
     </div>`).join('');
 }
 
@@ -858,14 +898,14 @@ function hearts(h){
   const full = Math.floor((h||0)/2), half = ((h||0)%2)>=1;
   let s='';
   for(let i=0;i<10;i++) s += `<i class="${i<full?'on':(i===full&&half?'half':'')}"></i>`;
-  return `<div class="hp" aria-label="Vida ${h||0} de 20">${s}</div>`;
+  return `<div class="hp" aria-label="${esc(t('pl.hp.aria',{h:h||0}))}">${s}</div>`;
 }
-const DIMN = {overworld:'Overworld', the_nether:'Nether', the_end:'End'};
-function hm(iso){ return iso ? new Date(iso).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : ''; }
+const dimName = d => { const k='dim.'+d, r=t(k); return r===k ? d : r; };
+function hm(iso){ return iso ? new Date(iso).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}) : ''; }
 function statusLine(p){
-  if(p.online) return `<span class="st on">Conectado${p.lastEvent?' desde las '+hm(p.lastEvent):''}</span> · posición de ${ago(p.lastSeen)}`;
-  if(p.lastEvent && p.lastEventKind==='left') return `<span class="st">Desconectado a las ${hm(p.lastEvent)} (${ago(p.lastEvent)})</span>`;
-  return `<span class="st">Desconectado · último guardado ${ago(p.lastSeen)}</span>`;
+  if(p.online) return `<span class="st on">${p.lastEvent ? t('pl.since',{time:hm(p.lastEvent)}) : t('pl.on')}</span> · ${t('pl.posof',{ago:ago(p.lastSeen)})}`;
+  if(p.lastEvent && p.lastEventKind==='left') return `<span class="st">${t('pl.left',{time:hm(p.lastEvent), ago:ago(p.lastEvent)})}</span>`;
+  return `<span class="st">${t('pl.off',{ago:ago(p.lastSeen)})}</span>`;
 }
 function renderPlayers(){
   const ps = [...D.players].sort((a,b)=> (b.online-a.online) || (b.lastEvent||b.lastSeen||'').localeCompare(a.lastEvent||a.lastSeen||''));
@@ -873,12 +913,12 @@ function renderPlayers(){
     <button class="pl ${p.online?'':'off'}" type="button" data-u="${p.uuid}" style="--pc:${colorOf[p.uuid]}">
       ${headImg(p)}
       <div>
-        <div class="nm"><span>${esc(p.name)}</span><small>Nv ${p.level??0}</small></div>
-        <div class="meta where">${p.pos?`${DIMN[p.dim]||p.dim} · ${p.pos[0]}, ${p.pos[1]}, ${p.pos[2]}`:'Sin posición'}</div>
+        <div class="nm"><span>${esc(p.name)}</span><small>${t('pl.lvl',{n:p.level??0})}</small></div>
+        <div class="meta where">${p.pos?`${dimName(p.dim)} · ${p.pos[0]}, ${p.pos[1]}, ${p.pos[2]}`:t('pl.nopos')}</div>
         <div class="meta">${statusLine(p)}</div>
         ${hearts(p.health)}
       </div>
-    </button>`).join('') : '<div class="empty">Aún no hay jugadores en este mundo.</div>';
+    </button>`).join('') : '<div class="empty">'+t('pl.empty')+'</div>';
   $('plist').querySelectorAll('.pl').forEach(b=>b.onclick=()=>{
     const p = D.players.find(x=>x.uuid===b.dataset.u);
     if(p && p.pos){ setDim(p.dim in D.regions ? p.dim : 'overworld'); centerOn(p.pos[0]/16, p.pos[2]/16, 8); }
@@ -895,11 +935,12 @@ function revealAwards(){
     rows.forEach((r,i)=>setTimeout(()=>r.classList.remove('pre'),i*90)); } },{threshold:.15});
   io.observe($('awards'));
 }
+function awardDescN(a, n){ return t('aw.'+a.id+'.d', {n: (a.k==='distKm' ? fmt1(n) : fmt(n)), p: Math.round(n)}); }
 function joinNames(list, max){            // "A", "A y B", "A, B y C", "A, B, C y 5 más"
   const n = list.map(p=>esc(p.name));
   if(n.length<=1) return n[0]||'';
-  if(n.length<=max) return n.slice(0,-1).join(', ')+' y '+n[n.length-1];
-  return n.slice(0,max-1).join(', ')+' y '+(n.length-max+1)+' más';
+  if(n.length<=max) return n.slice(0,-1).join(', ')+t('aw.and')+n[n.length-1];
+  return n.slice(0,max-1).join(', ')+t('aw.and')+t('aw.more',{n:n.length-max+1});
 }
 function renderAwards(){
   $('awards').innerHTML = AWARDS.map(a=>{
@@ -909,13 +950,13 @@ function renderAwards(){
     // "menos es mejor": solo hay premio si alguien se distingue del resto; en las demás, si el mejor tiene algo
     const lead = top && (low ? v(top)!==v(last) : v(top)>0);
     if(!lead){
-      return `<div class="aw none"><div class="ic">${iconSVG(a.i)}</div><div><div class="t">${a.t}</div><div class="d">Todavía nadie</div></div></div>`;
+      return `<div class="aw none"><div class="ic">${iconSVG(a.i)}</div><div><div class="t">${t('aw.'+a.id+'.t')}</div><div class="d">${t('aw.none')}</div></div></div>`;
     }
     const tie = sorted.filter(p=>v(p)===v(top));
     const who = joinNames(tie, 3);
     const second = sorted[tie.length];
-    const gap = !low && second && tie.length===1 && !['deaths','damageTaken'].includes(a.k) ? ` · le saca ${fmt(v(top)-v(second))} a ${esc(second.name)}` : '';
-    return `<div class="aw" style="--pc:${colorOf[top.uuid]}"><div class="ic">${iconSVG(a.i)}</div><div><div class="t">${a.t}</div><div class="w"><span class="mk"></span><b>${who}</b></div><div class="d">${a.d(v(top))}${gap}</div></div>${headImg(top)}</div>`;
+    const gap = !low && second && tie.length===1 && !['deaths','damageTaken'].includes(a.k) ? t('aw.gap',{n:fmt(v(top)-v(second)), name:esc(second.name)}) : '';
+    return `<div class="aw" style="--pc:${colorOf[top.uuid]}"><div class="ic">${iconSVG(a.i)}</div><div><div class="t">${t('aw.'+a.id+'.t')}</div><div class="w"><span class="mk"></span><b>${who}</b></div><div class="d">${awardDescN(a, v(top))}${gap}</div></div>${headImg(top)}</div>`;
   }).join('');
   revealAwards();
 }
@@ -936,7 +977,7 @@ function renderBars(){
   const cmp = lower ? ((a,b)=>(a[m.k]||0)-(b[m.k]||0) || a.name.localeCompare(b.name)) : ((a,b)=>(b[m.k]||0)-(a[m.k]||0) || a.name.localeCompare(b.name));
   const worst = lower ? Math.max(...ps.map(p=>p[m.k]||0)) : Math.min(...ps.map(p=>p[m.k]||0));
   const hasLeader = lower ? best!==worst : best>0;               // si todos van igual (o a cero) no hay líder
-  const note = $('catNote'); note.hidden = !lower; if(lower) note.textContent = m.lowerNote || 'En esta categoría gana quien menos tiene.';
+  const note = $('catNote'); note.hidden = !lower; if(lower) note.textContent = m.lowerNote || t('ln.default');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!barsReady || el.children.length !== ps.length){
     el.style.height = (ps.length*BAR_ROW - 10) + 'px';
@@ -970,20 +1011,20 @@ function renderBars(){
 
 /* ---------- tabla ---------- */
 const COLS = [
-  ['playHours','Horas',fmt1],['diamonds','Diamantes',fmt],['mobKills','Mobs',fmt],['playerKills','Kills PvP',fmt],
-  ['pvpDeaths','Muertes PvP',fmt],['shieldBlocked','Bloqueado',fmt],['shots','Disparos',fmt],['deaths','Muertes',fmt],['distKm','Km',fmt1],['blocksMined','Bloques',fmt],['jumps','Saltos',fmt],
-  ['damageDealt','Daño hecho',fmt],['damageTaken','Daño recibido',fmt],['crafted','Fabricado',fmt],['trades','Tradeos',fmt],['emeralds','Esmeraldas',fmt],['toolsBroken','Herr. rotas',fmt],['advancements','Logros',fmt],
-];
+  ['playHours',fmt1],['diamonds',fmt],['mobKills',fmt],['playerKills',fmt],
+  ['pvpDeaths',fmt],['shieldBlocked',fmt],['shots',fmt],['deaths',fmt],['distKm',fmt1],['blocksMined',fmt],['jumps',fmt],
+  ['damageDealt',fmt],['damageTaken',fmt],['crafted',fmt],['trades',fmt],['emeralds',fmt],['toolsBroken',fmt],['advancements',fmt],
+].map(([k,f])=>[k,'c.'+k,f]);
 function renderTable(){
   let ps = [...D.players];
   if(sortKey) ps.sort((a,b)=>sortDir*((a[sortKey]||0)-(b[sortKey]||0)));
   else ps.sort((a,b)=>a.name.localeCompare(b.name));
   const best = {};
   COLS.forEach(([k])=>{ const mx=Math.max(...D.players.map(p=>p[k]||0)); best[k]= mx>0?mx:null; });
-  const th = COLS.map(([k,l])=>`<th scope="col" data-k="${k}" ${sortKey===k?`aria-sort="${sortDir<0?'descending':'ascending'}"`:''} tabindex="0">${l}${sortKey===k?(sortDir<0?' ↓':' ↑'):''}</th>`).join('');
+  const th = COLS.map(([k,lk])=>`<th scope="col" data-k="${k}" ${sortKey===k?`aria-sort="${sortDir<0?'descending':'ascending'}"`:''} tabindex="0">${t(lk)}${sortKey===k?(sortDir<0?' ↓':' ↑'):''}</th>`).join('');
   const rows = ps.map(p=>`<tr><td><span class="pn" style="--pc:${colorOf[p.uuid]}">${headImg(p)}${esc(p.name)}</span></td>${
     COLS.map(([k,,f])=>`<td class="${best[k]!==null&&p[k]===best[k]?'best':''}">${f(p[k]||0)}</td>`).join('')}</tr>`).join('');
-  $('tbl').innerHTML = `<thead><tr><th scope="col" style="text-align:left">Jugador</th>${th}</tr></thead><tbody>${rows}</tbody>`;
+  $('tbl').innerHTML = `<thead><tr><th scope="col" style="text-align:left">${t('tbl.player')}</th>${th}</tr></thead><tbody>${rows}</tbody>`;
   $('tbl').querySelectorAll('thead th[data-k]').forEach(h=>{
     const go=()=>{ const k=h.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=-1;} renderTable(); };
     h.onclick=go; h.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} };
@@ -1145,7 +1186,7 @@ function draw(){
   if(curDim==='overworld' && D.spawn){
     const sx=view.x+(D.spawn[0]/16)*view.s, sz=view.y+(D.spawn[1]/16)*view.s;
     ctx.fillStyle=css('--map-ink')||'#e8f1f5'; ctx.beginPath(); ctx.moveTo(sx,sz-9); ctx.lineTo(sx+7,sz+5); ctx.lineTo(sx-7,sz+5); ctx.closePath(); ctx.fill();
-    ctx.font='600 11px '+getComputedStyle(document.body).fontFamily; ctx.fillStyle=css('--map-ink')||'#e8f1f5'; ctx.fillText('Spawn', sx+11, sz+4);
+    ctx.font='600 11px '+getComputedStyle(document.body).fontFamily; ctx.fillStyle=css('--map-ink')||'#e8f1f5'; ctx.fillText(t('map.spawn'), sx+11, sz+4);
   }
   // jugadores
   ctx.font='700 12.5px '+getComputedStyle(document.body).fontFamily;
@@ -1166,16 +1207,14 @@ function draw(){
     ctx.globalAlpha = 1;
   }
 }
-const LAYERS = [['terrain','Terreno'],['biomes','Biomas'],['heat','Tiempo']];
+const LAYERS = [['terrain','lay.terrain'],['biomes','lay.biomes'],['heat','lay.heat']];
 function hasTerrain(dim){ return !!(layers[dim] && layers[dim].terr); }
 function renderLayerSeg(){
   const el = $('layerSeg');
   el.hidden = !hasTerrain(curDim);
-  el.innerHTML = LAYERS.map(([k,l])=>`<button type="button" data-l="${k}" aria-pressed="${k===layerMode}">${l}</button>`).join('');
+  el.innerHTML = LAYERS.map(([k,l])=>`<button type="button" data-l="${k}" aria-pressed="${k===layerMode}">${t(l)}</button>`).join('');
   el.querySelectorAll('button').forEach(b=>b.onclick=()=>{ layerMode=b.dataset.l; renderLayerSeg(); renderLegend(); renderCover(); draw(); });
 }
-const BLOCK_LABELS = {w:'Agua',s:'Arena',g:'Hierba',l:'Hojas',k:'Piedra',n:'Nieve',d:'Tierra',v:'Grava',t:'Madera',m:'Barro',p:'Pizarra',r:'Terracota',i:'Hielo',o:'Lava',c:'Micelio',x:'Otros',
-  N:'Netherrack',R:'Carmesí',W:'Distorsionado',S:'Arena de almas',B:'Basalto',G:'Piedra luminosa',Q:'Cuarzo'};
 const NETHER_BLOCKS = ['N','R','W','S','B','G','Q','o'], NETHER_BIOMES = ['u','v','w','y','z'];
 function renderLegend(){
   const T = window.TERRAIN, el = $('legend'); if(!el) return;
@@ -1183,12 +1222,12 @@ function renderLegend(){
   let top;
   if(terr && layerMode==='terrain'){
     const keys = nether ? NETHER_BLOCKS : ['w','s','g','l','k','n','d','v','t','m'];
-    top = `<div>Terreno</div><div class="lgrid">${keys.map(k=>`<span><i style="background:${T.classes[k]}"></i>${BLOCK_LABELS[k]}</span>`).join('')}</div><div style="margin-top:6px;color:var(--panel-mut)">Zonas apagadas: nadie las ha pisado</div>`;
+    top = `<div>${t('leg.terrain')}</div><div class="lgrid">${keys.map(k=>`<span><i style="background:${T.classes[k]}"></i>${t('blk.'+k)}</span>`).join('')}</div><div style="margin-top:6px;color:var(--panel-mut)">${t('leg.dim')}</div>`;
   } else if(terr && layerMode==='biomes'){
-    const items = Object.entries(T.biomeClasses).filter(([k,b])=> b[0]!=='Otro' && (NETHER_BIOMES.includes(k)===nether));
-    top = `<div>Biomas</div><div class="lgrid">${items.map(([k,b])=>`<span><i style="background:${b[1]}"></i>${b[0]}</span>`).join('')}</div><div style="margin-top:6px;color:var(--panel-mut)">Zonas apagadas: nadie las ha pisado</div>`;
+    const items = Object.entries(T.biomeClasses).filter(([k,b])=> k!=='t' && (NETHER_BIOMES.includes(k)===nether));
+    top = `<div>${t('leg.biomes')}</div><div class="lgrid">${items.map(([k,b])=>`<span><i style="background:${b[1]}"></i>${t('bio.'+k)}</span>`).join('')}</div><div style="margin-top:6px;color:var(--panel-mut)">${t('leg.dim')}</div>`;
   } else {
-    top = `<div>Tiempo pasado en cada chunk</div><div class="ramp"></div><div class="row"><span>poco</span><span>mucho</span></div><div style="margin-top:6px"><span class="sw"></span>Generado, pero nadie ha estado</div>`;
+    top = `<div>${t('leg.heat')}</div><div class="ramp"></div><div class="row"><span>${t('leg.low')}</span><span>${t('leg.high')}</span></div><div style="margin-top:6px"><span class="sw"></span>${t('leg.gen')}</div>`;
   }
   el.innerHTML = top + '<div class="cover" id="cover"></div>';
 }
@@ -1196,8 +1235,8 @@ function renderLegend(){
 function tlTimes(){ const H = window.HISTORY; return (H && H.tl && H.tl.times) || []; }
 function tlLabel(){
   const ts = tlTimes(), L = layers[curDim];
-  const when = ts[tl.t] ? new Date(ts[tl.t]).toLocaleString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-  $('tlLabel').textContent = `${when} · ${L?fmt(L.visited):0} chunks`;
+  const when = ts[tl.t] ? new Date(ts[tl.t]).toLocaleString(LOC,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+  $('tlLabel').textContent = t('tl.label',{when:when, n:L?fmt(L.visited):0});
 }
 function tlNote(text, ms){
   const note = $('tlNote'); clearTimeout(tl.noteTimer);
@@ -1218,8 +1257,8 @@ function tlToggle(){
   $('tlbar').hidden = !tl.on;
   if(tl.on){
     tl.t = 0; tlSetup(); rebuildTimelapse();
-    const H = window.HISTORY, c = H && H.created ? new Date(H.created).toLocaleString('es-ES',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '';
-    tlNote(`Desde que se creó el mundo${c?' ('+c+')':''}. Reconstruido con las marcas de guardado: una zona visitada varias veces aparece en su última visita.`, 9000);
+    const H = window.HISTORY, c = H && H.created ? new Date(H.created).toLocaleString(LOC,{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '';
+    tlNote(t('tl.note',{c:c?' ('+c+')':''}), 9000);
   } else { tlStop(); tl.t = Infinity; rebuildTimelapse(); tlNote(''); }
 }
 function tlPlay(){
@@ -1242,12 +1281,12 @@ function tlPlay(){
 })();
 function renderDimSeg(){
   const ds=Object.keys(D.regions).filter(d=>Object.keys(D.regions[d]).length);
-  $('dimSeg').innerHTML = ds.map(d=>`<button type="button" data-d="${d}" aria-pressed="${d===curDim}">${DIMN[d]||d}</button>`).join('');
+  $('dimSeg').innerHTML = ds.map(d=>`<button type="button" data-d="${d}" aria-pressed="${d===curDim}">${dimName(d)}</button>`).join('');
   $('dimSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>setDim(b.dataset.d));
 }
 function renderCover(){
   const e=D.explored[curDim]||{generated:0,visited:0};
-  $('cover').innerHTML=`<b>${fmt(e.visited)}</b> chunks pisados · ${fmt(e.generated)} generados`;
+  $('cover').innerHTML=t('cover',{v:fmt(e.visited), g:fmt(e.generated)});
 }
 function chunkAt(mx,my){
   const L=layers[curDim]; if(!L) return null;
@@ -1268,7 +1307,7 @@ function zoomAt(f,mx,my){
     if(drag){ view.x=drag.vx+(e.clientX-drag.x); view.y=drag.vy+(e.clientY-drag.y); draw(); $('tip').style.display='none'; return; }
     const c=chunkAt(mx,my), tip=$('tip');
     if(!c){ tip.style.display='none'; return; }
-    const st = c.lv==='.' ? 'Sin generar' : c.lv==='0' ? 'Generado, nadie ha estado' : `Visitado (nivel ${c.lv} de 9)`;
+    const st = c.lv==='.' ? t('map.tip.none') : c.lv==='0' ? t('map.tip.gen') : t('map.tip.vis',{n:c.lv});
     tip.innerHTML=`x ${c.cx*16}, z ${c.cz*16} · ${st}`;
     tip.style.display='block';
     tip.style.left=Math.min(mx+14,r.width-tip.offsetWidth-6)+'px'; tip.style.top=Math.min(my+14,r.height-tip.offsetHeight-6)+'px';
@@ -1285,7 +1324,7 @@ function zoomAt(f,mx,my){
 
 /* ---------- pie ---------- */
 function renderFoot(){
-  $('foot').textContent = 'Los datos se leen del mundo guardado. Minecraft actualiza las estadísticas al guardar la partida, así que puede haber unos minutos de retraso. Se regeneran solos mientras build.py se ejecute cada minuto.';
+  $('foot').textContent = t('foot');
 }
 
 /* ---------- tema ---------- */
@@ -1310,13 +1349,7 @@ function renderAll(refit){
   renderLayerSeg(); renderLegend(); renderCover();
 }
 /* ---------- premio especial escondido: «el más andaluz» (no cuenta en ninguna clasificación) ---------- */
-const EGG_FRASES = [
-  'Pa qué madrugar, con lo bien que se está en la cama.',
-  'Una siesta a tiempo vale más que cien picos de diamante.',
-  'Esto no es pereza: es administrar bien la energía.',
-  'El creeper puede esperar; la almohada, no.',
-  'Descansar también es una estrategia.',
-];
+const EGG_N = 5;
 const SUN = {pal:{Y:'#ffd34e',O:'#ff9f2e',R:'#ffb347',K:'#1b1b1f'},g:[".....R.....",".R...R...R.","...OOOOO...","..OYYYYYO..","..OKKKKKO..","RROKKYKKORR","..OYYYYYO..","..OYYYYYO..","...OOOOO...",".R...R...R.",".....R....."]};
 function sunSVG(){
   let r=''; SUN.g.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch!=='.') r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${SUN.pal[ch]}"/>`; }));
@@ -1327,20 +1360,20 @@ function renderEgg(){
   const ps = [...D.players].sort((a,b)=>(b.sleeps||0)-(a.sleeps||0) || a.name.localeCompare(b.name));
   const top = ps[0], max = Math.max(1, top ? (top.sleeps||0) : 0);
   const n = top ? (top.sleeps||0) : 0;
-  const frase = EGG_FRASES[(top ? top.name.length : 0) % EGG_FRASES.length];
+  const frase = t('egg.f'+((top ? top.name.length : 0) % EGG_N));
   const tied = ps.filter(p=>(p.sleeps||0) === n);
   const winner = n>0 ? (tied.length>1
-    ? `<div class="egg-win"><div class="nm">${tied.map(p=>esc(p.name)).join(' y ')}</div><div class="big">${fmt(n)}<small>siestas cada uno</small></div></div>`
-    : `<div class="egg-win">${skinImg(top)}<div class="nm">${esc(top.name)}</div><div class="big">${fmt(n)}<small>${n===1?'siesta':'siestas'}</small></div></div>`)
-    : `<div class="egg-win"><div class="nm">Nadie ha dormido todavía</div></div>`;
+    ? `<div class="egg-win"><div class="nm">${tied.map(p=>esc(p.name)).join(t('aw.and'))}</div><div class="big">${fmt(n)}<small>${t('egg.each')}</small></div></div>`
+    : `<div class="egg-win">${skinImg(top)}<div class="nm">${esc(top.name)}</div><div class="big">${fmt(n)}<small>${t('egg.naps',{n:n})}</small></div></div>`)
+    : `<div class="egg-win"><div class="nm">${t('egg.nobody')}</div></div>`;
   card.innerHTML = `
     <div class="egg-sun">${sunSVG()}</div>
-    <h2>El más andaluz</h2>
-    <p class="egg-sub">Premio especial · quien más ha dormido en la partida</p>
+    <h2>${t('egg.title')}</h2>
+    <p class="egg-sub">${t('egg.sub')}</p>
     ${winner}
     <p class="egg-frase">«${esc(frase)}»</p>
     <div class="egg-list">${ps.map(p=>`<div class="egg-row" style="--pc:${colorOf[p.uuid]}"><div class="n">${headImg(p)}<span>${esc(p.name)}</span></div><div class="tr"><i style="width:${((p.sleeps||0)/max*100).toFixed(1)}%"></i></div><div class="v">${fmt(p.sleeps||0)}</div></div>`).join('')}</div>
-    <p class="egg-note">Esta estadística no cuenta para ninguna clasificación.</p>`;
+    <p class="egg-note">${t('egg.note')}</p>`;
 }
 function eggStored(){ try{ localStorage.removeItem('mcdash-siesta'); }catch(e){}   /* versión anterior: se guardaba para siempre */
   try{ return sessionStorage.getItem('mcdash-siesta')==='1'; }catch(e){ return false; } }
@@ -1412,11 +1445,43 @@ function dedupeHTML(id){
 }
 function boot(){
   ['plist','awards','arena','duelnote','tbl','ach','achTabs','tabs','raceTabs','eggCard'].forEach(dedupeHTML);
-  if(!window.DATA){ $('stampTxt').textContent='No hay datos todavía. Ejecuta build.py.'; return; }
+  if(!window.DATA){ $('stampTxt').textContent=t('stamp.nodata'); return; }
   D = window.DATA; renderAll(true);
   if(eggStored()) slArm();
 }
-boot();
+/* selector de idioma: ?lang=xx, lo guardado, el del navegador, y si no, inglés */
+function loadLang(code){
+  return new Promise(res=>{
+    if(LANGS[code]) return res();
+    const sc = document.createElement('script'); sc.src = 'lang/' + code + '.js';
+    sc.onload = ()=>res(); sc.onerror = ()=>{ sc.remove(); res(); }; document.head.appendChild(sc);
+  });
+}
+function pickLang(){
+  const known = c => LANGS_LIST.some(l=>l[0]===c);
+  const q = new URLSearchParams(location.search).get('lang'); if(q && known(q)) return q;
+  try{ const sv = localStorage.getItem('mcdash-lang'); if(sv && known(sv)) return sv; }catch(e){}
+  for(const l of (navigator.languages || [navigator.language || 'en'])){ const c = String(l).slice(0,2).toLowerCase(); if(known(c)) return c; }
+  return 'en';
+}
+async function setLang(code, persist){
+  await loadLang(code);
+  if(!LANGS[code]) code = 'es';
+  LANG = code; LOC = LANGS_LIST.find(l=>l[0]===code)[2];
+  document.documentElement.lang = code; document.documentElement.dir = code==='ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(e=>{ e.textContent = t(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(e=>{ e.setAttribute('aria-label', t(e.dataset.i18nAria)); });
+  document.querySelectorAll('[data-i18n-title]').forEach(e=>{ e.setAttribute('title', t(e.dataset.i18nTitle)); });
+  const sel = $('langSel'); if(sel) sel.value = code;
+  if(persist){ try{ localStorage.setItem('mcdash-lang', code); }catch(e){} }
+  if(D){ $('odos').innerHTML = ''; race.built = ''; renderAll(false); ensureLayers(); draw(); }
+}
+(function langUI(){
+  const sel = $('langSel'); if(!sel) return;
+  sel.innerHTML = LANGS_LIST.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('');
+  sel.onchange = ()=>setLang(sel.value, true);
+})();
+setLang(pickLang(), false).then(boot);
 if(new URLSearchParams(location.search).has('debug')) window.__t = { setData(d){ D=d; renderAll(false); ensureLayers(); draw(); }, get D(){ return D; } };
 
 /* ---------- fondo: cuadraditos que flotan sobre una rejilla de chunks ---------- */
@@ -1474,7 +1539,7 @@ function pollData(){
   const s=document.createElement('script'); s.src='data.js?t='+Date.now();
   s.onload=()=>{ if(window.DATA && D && window.DATA.worldId && D.worldId && window.DATA.worldId!==D.worldId){ location.reload(); return; }   /* otro mundo abierto: se recarga la página */
     if(window.DATA && D && window.DATA.generatedAt!==D.generatedAt){ D=window.DATA; renderAll(false); ensureLayers(); draw(); } s.remove(); };
-  s.onerror=()=>{ s.remove(); const t=$('stampTxt'); if(t) t.textContent='Sin conexión con el servidor; reintentando…'; };
+  s.onerror=()=>{ s.remove(); const st=$('stampTxt'); if(st) st.textContent=t('stamp.offline'); };
   document.head.appendChild(s);
 }
 setInterval(pollData, 20000);

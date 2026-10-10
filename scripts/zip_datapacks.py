@@ -17,4 +17,4 @@ for name in sorted(os.listdir(SRC)):
             for f in files:
                 full = os.path.join(dirpath, f)
                 z.write(full, os.path.relpath(full, folder).replace(os.sep, "/"))
-    print("creado", os.path.relpath(zp, ROOT))
+    print("created", os.path.relpath(zp, ROOT))

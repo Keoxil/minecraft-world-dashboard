@@ -68,33 +68,64 @@ ADV_ES = {
 }
 
 
-_LANG_ADV = None
+_LANG_ADV_BY = {}
+PAGE_LANGS = {"es": "es_es", "en": "en_us", "zh": "zh_cn", "hi": "hi_in", "ar": "ar_sa",
+              "fr": "fr_fr", "pt": "pt_br", "ru": "ru_ru", "de": "de_de", "ja": "ja_jp"}   # idioma de la página -> idioma del juego
 
 
-def lang_adv():
-    """Nombres oficiales de los logros en español de España (es_es), leídos del archivo de idioma del propio juego."""
-    global _LANG_ADV
-    if _LANG_ADV is not None:
-        return _LANG_ADV
-    _LANG_ADV = {}
+def _adv_from_jar(code):
+    import zipfile
+    res = {}
+    try:
+        for base in discover.assets_dirs(PROFILE):
+            jars = glob.glob(os.path.join(os.path.dirname(base), "versions", "*", "*.jar"))
+            for jar in sorted(jars, key=os.path.getmtime, reverse=True)[:3]:
+                try:
+                    with zipfile.ZipFile(jar) as z:
+                        name = f"assets/minecraft/lang/{code}.json"
+                        if name not in z.namelist():
+                            continue
+                        lang = json.loads(z.read(name).decode("utf-8"))
+                except Exception:
+                    continue
+                for k, v in lang.items():
+                    if k.startswith("advancements.") and k.endswith(".title"):
+                        res[k[len("advancements."):-len(".title")].replace(".", "/", 1)] = v
+                if res:
+                    return res
+    except Exception:
+        pass
+    return res
+
+
+def lang_adv(code=None):
+    """Nombres oficiales de los logros en un idioma, leídos del archivo de idioma del propio juego."""
+    code = code or LANG_CODE
+    if code in _LANG_ADV_BY:
+        return _LANG_ADV_BY[code]
+    out = _LANG_ADV_BY[code] = {}
+    if code == "en_us":                        # el inglés viene dentro del .jar de la versión, no en los assets
+        out.update(_adv_from_jar(code))
+        if out:
+            return out
     try:
         for base in discover.assets_dirs(PROFILE):
             for f in sorted(glob.glob(base + "/indexes/*.json"), key=os.path.getmtime, reverse=True):
                 objs = json.load(open(f, encoding="utf-8")).get("objects", {})
-                ent = objs.get(f"minecraft/lang/{LANG_CODE}.json")
+                ent = objs.get(f"minecraft/lang/{code}.json")
                 if not ent:
                     continue
                 h = ent["hash"]
                 lang = json.load(open(f"{base}/objects/{h[:2]}/{h}", encoding="utf-8"))
                 for k, v in lang.items():
                     if k.startswith("advancements.") and k.endswith(".title"):
-                        _LANG_ADV[k[len("advancements."):-len(".title")].replace(".", "/", 1)] = v
+                        out[k[len("advancements."):-len(".title")].replace(".", "/", 1)] = v
                 break
-            if _LANG_ADV:
+            if out:
                 break
     except Exception:
         pass
-    return _LANG_ADV
+    return out
 
 
 def adv_title(aid):
@@ -345,7 +376,7 @@ def read_players(names):
                     "selected": d.get("SelectedItemSlot", 0),
                 }
             except Exception as e:
-                print("NBT fallo", uuid, e)
+                print("NBT read failed", uuid, e)
         players.append(p)
     return players, achievements
 
@@ -542,7 +573,7 @@ def configure():
         cfg = dict(cfg, launcher=prefs["launcher"])
     sel = discover.pick(cfg, DATA_DIR)
     if not sel:
-        print("No encuentro ningún mundo de Minecraft. Indica la carpeta de tu instancia en config.json (mira config.example.json).")
+        print("No Minecraft world found. Open Minecraft once with a world, or set your instance folder in config.json (see config.example.json).")
         return False
     PROFILE, WORLD = sel["instance"], sel["world"]
     WORK = os.path.join(DATA_DIR, discover.slug(PROFILE, WORLD))
@@ -553,7 +584,7 @@ def configure():
     except OSError:
         prev = ""
     FORCE_TERRAIN = prev != WORLD          # cambio de mundo: hay que reescribir también el terreno
-    print(f"Mundo: {os.path.basename(WORLD)}  ({'abierto ahora' if sel['open'] else 'el último que se usó'})  en  {PROFILE}")
+    print(f"World: {os.path.basename(WORLD)}  ({'open now' if sel['open'] else 'last used'})  in  {PROFILE}")
     return True
 
 
@@ -562,7 +593,7 @@ def main():
     os.makedirs(DATA_DIR, exist_ok=True)
     lock = os.path.join(DATA_DIR, ".build.lock")
     if os.path.exists(lock) and time.time() - os.path.getmtime(lock) < 600:
-        print("Otra ejecución en curso; salgo.")
+        print("Another run is in progress; exiting.")
         return
     open(lock, "w").close()
     try:
@@ -670,6 +701,8 @@ def _main(t0):
         "preEstimated": EST_METRICS,
         "tl": {"times": times, "regions": tl_regions},
         "ach": achievements[:400],
+        "adv": {lg: {i: n for i in {a["id"] for a in achievements[:400]} for n in [lang_adv(code).get(i)] if n}
+                for lg, code in PAGE_LANGS.items()},
     }
     write_js(S("history.js"), "HISTORY", hist_out)
 
@@ -679,7 +712,7 @@ def _main(t0):
     with open(S(".world"), "w", encoding="utf-8") as fh:
         fh.write(WORLD)
 
-    print(f"OK {len(players)} jugadores, {sum(len(v) for v in dims.values())} regiones, terreno {n_terrain} regiones nuevas, "
+    print(f"OK {len(players)} players, {sum(len(v) for v in dims.values())} regions, terrain {n_terrain} new regions, "
           f"{len(history['snaps'])} snapshots, {time.time()-t0:.1f}s")
 
 

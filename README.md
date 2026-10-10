@@ -1,97 +1,86 @@
 # Minecraft World Dashboard
 
-Una página web que enseña las estadísticas del mundo de Minecraft que estés jugando: ranking, podio con skins, mapa de lo explorado (terreno, biomas y tiempo), timelapse, carrera del ranking, historial de logros, Arena PvP y mucho más. Se actualiza sola y **encuentra por su cuenta el mundo que esté abierto en ese momento**, así que sirve para cualquier mundo que juegues o alojes en el futuro.
+[Leer en español](README.es.md)
 
-No necesita mods ni plugins: lee los archivos del propio mundo (estadísticas, logros, regiones, datos de jugador) y los registros del juego. Solo usa la biblioteca estándar de Python.
+A web page that shows the stats of the Minecraft world you are playing: ranking, podium with skins, a map of what has been explored (terrain, biomes and time), timelapse, ranking race, achievement history, a PvP arena and more. It updates itself and **finds the world that is open at that moment on its own**, so it works for any world you play or host in the future.
 
-## Qué enseña
+No mods or plugins needed: it reads the world's own files (statistics, advancements, regions, player data). It uses only the Python standard library.
 
-- **Contadores** de arriba con estadísticas elegidas al azar en cada carga.
-- **Mapa** con tres capas (terreno, biomas y tiempo pasado en cada chunk), Overworld y Nether, posiciones de los jugadores (conectados o no) y **timelapse** desde la creación del mundo.
-- **Clasificación general** con podio y skins, **carrera del ranking**, **clasificaciones por categoría** (incluidas las de "menos es mejor") y una tabla ordenable.
-- **Premios**, **historial de logros** con la hora real y nombres oficiales del juego, y **Arena PvP**.
-- Tema claro y oscuro, fondo animado y adaptación a móvil.
-- Todas las horas llevan zona horaria: cada persona las ve en su hora local.
+**10 languages**, picked from a selector on the page: English, Español, 中文, हिन्दी, العربية, Français, Português, Русский, Deutsch and 日本語. Achievement names even come from the game's own translations.
 
-## Requisitos
+## Quick start (easiest)
 
-- Python 3.9 o superior (sin instalar nada más).
-- Minecraft Java. Probado en **Windows** con la versión **26.3** y launcher Modrinth; en mundos 1.21.1 también lee estadísticas, logros y mapa. El terreno y los biomas necesitan mundos de 1.18 o más nuevos.
-- Linux y macOS están contemplados, pero no los he probado.
+1. Download **`MinecraftWorldDashboard.exe`** from [Releases](../../releases/latest).
+2. Open Minecraft with your world.
+3. Double-click the `.exe`.
 
-## Empezar (lo más fácil)
+That's it: nothing to install, no Python, no accounts. It reads your world, opens the page in your browser and keeps it up to date every minute. It also creates a **public link** with Cloudflare (it downloads that tool by itself, checking its official checksum) and copies it to your clipboard: send it to your friends and they can see the page. The first time, it asks if you want it to start automatically when you log in.
 
-1. Descarga **`MinecraftWorldDashboard.exe`** desde [Releases](../../releases/latest).
-2. Abre Minecraft con tu mundo.
-3. Haz doble clic en el `.exe`.
+- **Several worlds or launchers?** The first time, a small menu lets you choose the launcher and the world (or keep "automatic", which always follows the world you have open). Run it again with `--choose-world` to change it. If your Minecraft is in an unusual folder, choose `+` in that menu and paste the path.
+- **No public link:** run it with `--no-link`.
+- **Your data and settings** live in `%LOCALAPPDATA%\MinecraftWorldDashboard` (that is also where an optional `config.json` goes). To uninstall, delete the `.exe` and that folder (and, if you enabled automatic startup, run the program once with `--remove-startup`).
 
-Eso es todo: no hace falta instalar nada, ni Python ni cuentas. Lee tu mundo, abre la página en tu navegador y la mantiene al día cada minuto. Además crea un **enlace público** con Cloudflare (descarga la herramienta ella sola, comprobando su firma oficial) y lo copia al portapapeles: se lo pasas a tus amigos y ya pueden verla. La primera vez te pregunta si quieres que arranque sola al encender el ordenador. Sin enlace público: ejecuta el programa con `--sin-enlace`.
+The link changes every time the program restarts. For a permanent one, use a [named Cloudflare tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (free account needed).
 
-Tus datos y ajustes se guardan en `%LOCALAPPDATA%\MinecraftWorldDashboard` (ahí va también `config.json` si lo necesitas). Para desinstalar, borra el `.exe` y esa carpeta (y, si activaste el arranque automático, ejecuta el programa una vez con `--quitar-inicio`).
+### Is it safe?
 
-El enlace cambia cada vez que se reinicia el programa. Si quieres uno fijo, usa un [túnel con nombre de Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (necesita cuenta gratuita).
+- **The `.exe` is not built by a person, it is built by GitHub**, in the open, from this code ([workflow](.github/workflows/release.yml)). You can verify it: `gh attestation verify MinecraftWorldDashboard.exe --repo <user>/minecraft-world-dashboard`, or compare its SHA-256 with `SHA256.txt`.
+- **Windows may warn you** ("Windows protected your PC") because the program has no paid code-signing certificate, which is normal for small projects. If you don't trust it, don't run it: all the code is here, it is short and uses only standard Python; you can run it with `python start.py`.
+- **It only reads** your world files; it never modifies them or touches passwords, accounts or the rest of your disk.
+- **Minimal exposure:** the server listens only on `127.0.0.1`, only answers GET, and only serves a fixed list of files (the page, its three data files and the ten language files). It serves no folders, runs nothing and accepts no uploads. The page has a strict Content Security Policy and escapes every name (tested with malicious player names).
+- **Cloudflare:** the tool is downloaded from the official GitHub releases and verified against its SHA-256 checksum before it runs. The tunnel is outbound only: no port is opened on your router.
+- **Privacy:** anyone with the link can see player names, their current coordinates and where they last died. Share it only with friends.
 
-### ¿Es seguro?
+## Manual use (with Python)
 
-- **El `.exe` no lo compila una persona, lo compila GitHub** a la vista de todos desde este código ([workflow](.github/workflows/release.yml)). Puedes comprobarlo: `gh attestation verify MinecraftWorldDashboard.exe --repo <usuario>/minecraft-world-dashboard`, o comparar su SHA-256 con `SHA256.txt`.
-- **Windows puede avisarte** ("Windows protegió su PC") porque el programa no tiene firma de pago, algo normal en proyectos pequeños. Si no te fías, no lo ejecutes: todo el código está aquí, es corto y usa solo Python estándar; puedes lanzarlo con `python start.py`.
-- **Solo lee** los archivos de tus mundos; nunca los modifica ni toca contraseñas, cuentas ni el resto del disco.
-- **Superficie expuesta mínima:** el servidor escucha solo en `127.0.0.1`, solo responde a GET y solo entrega 5 archivos concretos (la página y sus 3 archivos de datos). No sirve carpetas, no ejecuta nada ni acepta subidas. La página lleva una política CSP estricta y escapa todos los nombres (probado con nombres de jugador maliciosos).
-- **Cloudflare:** la herramienta se descarga de GitHub oficial y se verifica con su huella SHA-256 antes de ejecutarse. El túnel es saliente: no se abre ningún puerto en tu router.
-- **Privacidad:** quien tenga el enlace ve nombres de jugadores, coordenadas actuales y dónde murieron. Compártelo solo con tus amigos.
-
-## Uso manual
+Requires Python 3.9+. Minecraft Java. Tested on **Windows** with **Minecraft 26.3** and the Modrinth launcher; stats, advancements and map also work on 1.21.1. Terrain and biomes need worlds from 1.18 or newer. Linux and macOS are supported in the code but untested.
 
 ```bash
-python build.py        # lee el mundo abierto y genera los datos en site/
-python serve.py        # sirve la página en http://127.0.0.1:8765/
+python start.py          # does everything: reads the world, serves the page, creates the link
+python start.py --help   # all options
 ```
 
-Abre <http://127.0.0.1:8765/>. Para que los datos se mantengan al día, ejecuta `build.py` cada minuto:
-
-- **Windows:** `scripts\windows\tarea_programada.bat` crea una tarea programada que lo ejecuta cada minuto sin abrir ninguna ventana (`quitar_tarea.bat` la elimina).
-- **Linux / macOS:** una línea de `cron`: `* * * * * cd /ruta/al/repositorio && python3 build.py`
-
-## Cómo encuentra el mundo
-
-1. Busca instancias de Minecraft en los launchers habituales: launcher oficial, Modrinth, Prism/MultiMC y CurseForge.
-2. Elige el mundo que Minecraft tiene abierto en ese momento (en Windows, el que tiene `session.lock` bloqueado).
-3. Si no hay ninguno abierto, se queda con el último que se usó.
-
-Cuando cambias de mundo, la página lo nota en unos segundos y se recarga sola con el mundo nuevo. Cada mundo guarda su propio historial en `data/<mundo>/`.
-
-Si tu instancia está en un sitio raro, copia `config.example.json` a `config.json` y rellena `instances` (carpetas que contengan `saves/`) o `world` (para fijar un mundo concreto). Otras opciones: `language` (idioma de los nombres de los logros, por defecto `es_es`), `port`, `terrain` y `terrain_max_regions` (los mundos enormes desactivan la capa de terreno para que la página no pese demasiado).
-
-## Compartirla con amigos
-
-`serve.py` solo escucha en tu propio equipo (`127.0.0.1`) y solo sirve `site/index.html` y los cuatro archivos de datos, nada más. Para que otros la vean sin abrir puertos en el router puedes usar un túnel, por ejemplo [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/):
+Or step by step:
 
 ```bash
-cloudflared tunnel --url http://127.0.0.1:8765
+python build.py          # reads the open world and writes the data files into site/
+python serve.py          # serves the page at http://127.0.0.1:8765/
 ```
 
-(`scripts\windows\compartir.bat` hace las dos cosas a la vez.)
+To keep the data fresh without `start.py`, run `build.py` every minute (Windows Task Scheduler, or cron: `* * * * * cd /path/to/repo && python3 build.py`).
 
-**Ojo con la privacidad:** la página publica los nombres de los jugadores, sus coordenadas actuales y el sitio donde murieron por última vez. Cualquiera que tenga el enlace lo ve. Compártelo solo con quien quieras que sepa dónde están vuestras bases.
+## How it finds your world
+
+1. It looks for Minecraft instances in the common launchers: the official launcher, Modrinth, Prism Launcher, MultiMC, CurseForge (including a OneDrive-redirected Documents folder), GDLauncher and ATLauncher.
+2. It picks the world Minecraft has open right now (on Windows, the one whose `session.lock` is locked).
+3. If none is open, it keeps the last one that was used.
+
+When you switch worlds, the page notices within seconds and reloads by itself. Each world keeps its own history in `data/<world>/`.
+
+For an unusual location, copy `config.example.json` to `config.json` and fill in `instances` (folders that contain `saves/`) or `world` (to pin a specific world). Other options: `language` (language of achievement names in the data, default `es_es`), `port`, `terrain` and `terrain_max_regions` (huge worlds skip the terrain layer so the page stays light).
+
+## Translations
+
+Each language is one file in `site/lang/`. To fix a translation or add a language, copy `site/lang/en.js`, translate the values (keep the `{variables}`; `|` separates singular|plural) and add it to `LANGS_LIST` in `site/index.html`, to the allow-list in `serve.py` and to `PAGE_LANGS` in `build.py`.
 
 ## Datapacks
 
-En `datapacks/` hay seis datapacks sueltos para jugar con amigos: **PvP Duelos**, **Talar árboles**, **Minero de vetas**, **Cosecha fácil**, **Coordenadas de muerte** y **Casa**. `python scripts/zip_datapacks.py` los empaqueta en `dist/`. Mira `datapacks/README.md`.
+`datapacks/` has six standalone datapacks for playing with friends: **PvP Duels**, **Tree Feller**, **Vein Miner**, **Easy Harvest**, **Death Coordinates** and **Home**. `python scripts/zip_datapacks.py` packs them into `dist/`. See `datapacks/README.md`.
 
-## Un secreto
+## A secret
 
 <details>
-<summary>Hay un premio escondido en la página (pulsa para ver cómo encontrarlo)</summary>
+<summary>There is a hidden award on the page (click to see how to find it)</summary>
 
-Se descubre escribiendo **siesta** con el teclado en cualquier parte de la página, con el **código Konami** (↑ ↑ ↓ ↓ ← → ← → B A), o tocando siete veces seguidas el título. No cuenta para ninguna clasificación.
+Type **siesta** on the keyboard anywhere on the page, enter the **Konami code** (↑ ↑ ↓ ↓ ← → ← → B A), or tap the title seven times in a row. It doesn't count towards any ranking.
 </details>
 
-## Créditos
+## Credits
 
-Las skins y las caras se cargan de [mc-heads.net](https://mc-heads.net) (con [crafatar.com](https://crafatar.com) de reserva) y las fuentes, de Google Fonts, cuando hay conexión. No se incluye ningún recurso de Mojang.
+Skins and faces are loaded from [mc-heads.net](https://mc-heads.net) (with [crafatar.com](https://crafatar.com) as a fallback) and fonts from Google Fonts, when online. No Mojang assets are included.
 
-Minecraft es una marca de Mojang AB. Este proyecto no está afiliado ni respaldado por Mojang ni por Microsoft.
+Minecraft is a trademark of Mojang AB. This project is not affiliated with or endorsed by Mojang or Microsoft.
 
-## Licencia
+## License
 
 [MIT](LICENSE)

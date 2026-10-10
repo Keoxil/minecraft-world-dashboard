@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Un solo paso: arranca la página, la mantiene al día y te da un enlace para compartirla.
+"""One step: starts the page, keeps it up to date and gives you a link to share it.
 
-    python start.py                 # lo normal: lee tu mundo, abre la página y crea el enlace para tus amigos
-    python start.py --sin-enlace    # solo en tu ordenador, sin enlace público
-    python start.py --silencioso    # sin mensajes ni navegador (para el arranque automático)
-    python start.py --instalar-inicio / --quitar-inicio    # arrancar solo al iniciar sesión (Windows)
+    python start.py                 # the normal way: reads your world, opens the page and creates a link for your friends
+    python start.py --no-link       # only on this computer, no public link
+    python start.py --silent        # no messages and no browser (for automatic startup)
+    python start.py --install-startup / --remove-startup    # start by itself when you log in (Windows)
 """
 import argparse
 import hashlib
@@ -58,7 +58,7 @@ def load_config():
         return {}
 
 
-# ------------------------------------------------------------------ cloudflared (descarga verificada)
+# ------------------------------------------------------------------ cloudflared (verified download)
 def _asset():
     m = platform.machine().lower()
     arch = "arm64" if m in ("arm64", "aarch64") else ("arm" if m.startswith("arm") else ("386" if m in ("i386", "i686", "x86") else "amd64"))
@@ -83,20 +83,20 @@ def ensure_cloudflared():
     found = shutil_which("cloudflared")
     if found:
         return found
-    say("Descargando la herramienta de Cloudflare (solo la primera vez, unos 50 MB)...")
+    say("Downloading the Cloudflare tool (first time only, about 50 MB)...")
     rel = json.loads(_get("https://api.github.com/repos/cloudflare/cloudflared/releases/latest"))
     body = rel.get("body") or ""
     m = re.search(re.escape(asset) + r"[^\n]*?([0-9a-f]{64})", body, re.I)
     if not m:
-        raise RuntimeError("no he podido comprobar la firma (hash) oficial de la descarga; por seguridad no la uso")
+        raise RuntimeError("could not find the official checksum for the download; not using it for safety")
     expected = m.group(1).lower()
     url = next((a["browser_download_url"] for a in rel.get("assets", []) if a["name"] == asset), None)
     if not url:
-        raise RuntimeError(f"no existe la descarga {asset} para este sistema")
+        raise RuntimeError(f"no download named {asset} exists for this system")
     blob = _get(url, timeout=600)
     got = hashlib.sha256(blob).hexdigest()
     if got != expected:
-        raise RuntimeError("la descarga no coincide con la firma oficial de Cloudflare; no la uso")
+        raise RuntimeError("the download does not match Cloudflare official checksum; not using it")
     os.makedirs(TOOLS, exist_ok=True)
     if is_tgz:
         with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as tf:
@@ -106,7 +106,7 @@ def ensure_cloudflared():
         open(dest, "wb").write(blob)
     if not IS_WIN:
         os.chmod(dest, 0o755)
-    say("Herramienta de Cloudflare descargada y verificada.")
+    say("Cloudflare tool downloaded and verified.")
     return dest
 
 
@@ -115,7 +115,7 @@ def shutil_which(name):
     return shutil.which(name)
 
 
-# ------------------------------------------------------------------ utilidades
+# ------------------------------------------------------------------ helpers
 def port_in_use(port):
     with socket.socket() as s:
         s.settimeout(0.5)
@@ -150,7 +150,7 @@ def pid_alive(pid):
 
 
 def selfcmd(mode):
-    """Comando para volver a lanzarse en un modo interno (--build / --serve), sea .exe o script."""
+    """Command to relaunch itself in an internal mode (--build / --serve), whether .exe or script."""
     return [sys.executable, mode] if paths.FROZEN else [sys.executable, SELF, mode]
 
 
@@ -169,7 +169,7 @@ def save_prefs(**kw):
 
 
 def choose_world(force=False):
-    """Menú para elegir el mundo. Solo pregunta si hay más de uno y nunca se ha elegido (o si se pide con --elegir-mundo)."""
+    """Menu to choose the world. It only asks if there is more than one and it has never been chosen (or when --choose-world is used)."""
     import discover
     prefs = load_prefs()
     if not force and prefs.get("mundo_preguntado"):
@@ -187,60 +187,60 @@ def choose_world(force=False):
         except EOFError:
             return ""
 
-    # 1) launcher (solo si hay más de uno)
+    # 1) launcher (only if there is more than one)
     launchers = []
     for w in worlds:
         if w["launcher"] not in launchers:
             launchers.append(w["launcher"])
     chosen_l = None
     if not worlds:
-        print("\nNo he encontrado ningún mundo de Minecraft automáticamente.")
-        print("  +) Indicar la carpeta a mano")
-        a = ask("Escribe + para indicarla, o Intro para continuar: ")
+        print("\nNo Minecraft worlds were found automatically.")
+        print("  +) Enter the folder manually")
+        a = ask("Type + to enter it, or press Enter to continue: ")
         if a == "+":
-            folder = ask("Pega la ruta de la carpeta de tu instancia (la que contiene la carpeta 'saves'): ").strip('" ')
+            folder = ask("Paste the path of your instance folder (the one that contains the 'saves' folder): ").strip('" ')
             folder = os.path.abspath(os.path.expanduser(folder)) if folder else ""
             if os.path.basename(folder).lower() == "saves":
                 folder = os.path.dirname(folder)
             if folder and os.path.isdir(os.path.join(folder, "saves")):
                 save_prefs(instances=sorted(set(prefs.get("instances", [])) | {folder}))
                 return choose_world(force=True)
-            print("  No he encontrado la carpeta 'saves' ahí.\n")
+            print("  Could not find a 'saves' folder there.\n")
         return
     if len(launchers) > 1:
-        print("\nHe encontrado Minecraft en estos launchers:")
-        print("  0) Todos / automático (recomendado)")
+        print("\nMinecraft was found in these launchers:")
+        print("  0) All / automatic (recommended)")
         for n, l in enumerate(launchers, 1):
             print(f"  {n}) {l}")
-        a = ask(f"Elige un número [0-{len(launchers)}] (Intro = 0): ")
+        a = ask(f"Choose a number [0-{len(launchers)}] (Enter = 0): ")
         if a.isdigit() and 1 <= int(a) <= len(launchers):
             chosen_l = launchers[int(a) - 1]
             worlds = [w for w in worlds if w["launcher"] == chosen_l]
-    # 2) mundo
-    print("\nMundos encontrados" + (f" en {chosen_l}" if chosen_l else "") + ":")
-    print("  0) Automático: el que tengas abierto en cada momento (recomendado)")
+    # 2) world
+    print("\nWorlds found" + (f" in {chosen_l}" if chosen_l else "") + ":")
+    print("  0) Automatic: whichever world you have open at the time (recommended)")
     for n, w in enumerate(worlds, 1):
-        print(f"  {n}) {w['name']}   [{w['launcher']}: {os.path.basename(w['instance'])}]" + ("   <- abierto ahora" if w["open"] else ""))
-    print("  +) Mi Minecraft está en otra carpeta (indicarla a mano)")
-    a = ask(f"Elige un número [0-{len(worlds)}] o + (Intro = 0): ")
+        print(f"  {n}) {w['name']}   [{w['launcher']}: {os.path.basename(w['instance'])}]" + ("   <- open now" if w["open"] else ""))
+    print("  +) My Minecraft is in another folder (enter it manually)")
+    a = ask(f"Choose a number [0-{len(worlds)}] or + (Enter = 0): ")
     if a == "+":
-        folder = ask("Pega la ruta de la carpeta de tu instancia (la que contiene la carpeta 'saves'): ").strip('" ')
+        folder = ask("Paste the path of your instance folder (the one that contains the 'saves' folder): ").strip('" ')
         folder = os.path.abspath(os.path.expanduser(folder)) if folder else ""
         if os.path.basename(folder).lower() == "saves":
             folder = os.path.dirname(folder)
         if folder and os.path.isdir(os.path.join(folder, "saves")):
             save_prefs(instances=sorted(set(prefs.get("instances", [])) | {folder}))
-            print("  -> Carpeta añadida.")
+            print("  -> Folder added.")
             return choose_world(force=True)
-        print("  No he encontrado la carpeta 'saves' ahí; no cambio nada.\n")
+        print("  Could not find a 'saves' folder there; nothing changed.\n")
         return
     pick = int(a) if a.isdigit() and 0 <= int(a) <= len(worlds) else 0
     if pick:
         save_prefs(mundo_preguntado=True, world=worlds[pick - 1]["world"], launcher=None)
-        print(f"  -> Mundo fijado: {worlds[pick - 1]['name']}   (para cambiarlo: --elegir-mundo)\n")
+        print(f"  -> World set: {worlds[pick - 1]['name']}   (to change it later: --choose-world)\n")
     else:
         save_prefs(mundo_preguntado=True, world=None, launcher=chosen_l)
-        print("  -> Modo automático" + (f" solo con {chosen_l}" if chosen_l else "") + "   (para cambiarlo: --elegir-mundo)\n")
+        print("  -> Automatic mode" + (f" using only {chosen_l}" if chosen_l else "") + "   (to change it later: --choose-world)\n")
 
 
 def run_build():
@@ -256,23 +256,23 @@ def spawn(cmd, **kw):
     return subprocess.Popen(cmd, cwd=HERE, creationflags=NO_WINDOW, **kw)
 
 
-# ------------------------------------------------------------------ arranque automático (Windows)
+# ------------------------------------------------------------------ automatic startup (Windows)
 def instalar_inicio():
     if not IS_WIN:
-        say("En este sistema añade a mano `python3 start.py --silencioso` a tus programas de inicio (o a systemd/cron @reboot).")
+        say("On this system, add `python3 start.py --silent` to your startup programs (or to systemd/cron @reboot) yourself.")
         return
     pyw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
     exe = pyw if os.path.isfile(pyw) else sys.executable
-    tr = f'"{sys.executable}" --silencioso' if paths.FROZEN else f'"{exe}" "{SELF}" --silencioso'
+    tr = f'"{sys.executable}" --silent' if paths.FROZEN else f'"{exe}" "{SELF}" --silent'
     r = subprocess.run(["schtasks", "/Create", "/TN", TASK_INICIO, "/SC", "ONLOGON", "/F", "/TR", tr],
                        capture_output=True, text=True, creationflags=NO_WINDOW)
-    say("Listo: se iniciará solo cada vez que inicies sesión." if r.returncode == 0 else "No he podido crearlo: " + r.stdout + r.stderr)
+    say("Done: it will start by itself every time you log in." if r.returncode == 0 else "Could not create it: " + r.stdout + r.stderr)
 
 
 def quitar_inicio():
     if IS_WIN:
         subprocess.run(["schtasks", "/Delete", "/TN", TASK_INICIO, "/F"], capture_output=True, creationflags=NO_WINDOW)
-    say("Ya no se iniciará solo.")
+    say("It will no longer start by itself.")
 
 
 def inicio_instalado():
@@ -281,56 +281,56 @@ def inicio_instalado():
     return subprocess.run(["schtasks", "/Query", "/TN", TASK_INICIO], capture_output=True, creationflags=NO_WINDOW).returncode == 0
 
 
-# ------------------------------------------------------------------ principal
+# ------------------------------------------------------------------ main
 def main():
     global QUIET
-    ap = argparse.ArgumentParser(description="Arranca la página y crea el enlace para compartirla.")
-    ap.add_argument("--sin-enlace", action="store_true", help="solo en tu ordenador, sin enlace público")
-    ap.add_argument("--silencioso", action="store_true", help="sin mensajes ni navegador")
-    ap.add_argument("--sin-navegador", action="store_true", help="no abrir el navegador")
-    ap.add_argument("--puerto", type=int, help="puerto local (por defecto 8765)")
-    ap.add_argument("--intervalo", type=int, default=60, help="segundos entre actualizaciones (por defecto 60)")
-    ap.add_argument("--elegir-mundo", action="store_true", help="elegir de qué mundo se crea la página (o volver al modo automático)")
-    ap.add_argument("--instalar-inicio", action="store_true")
-    ap.add_argument("--quitar-inicio", action="store_true")
+    ap = argparse.ArgumentParser(description="Starts the page and creates a link to share it.")
+    ap.add_argument("--no-link", "--sin-enlace", dest="no_link", action="store_true", help="only on this computer, no public link")
+    ap.add_argument("--silent", "--silencioso", dest="silent", action="store_true", help="no messages and no browser")
+    ap.add_argument("--no-browser", "--sin-navegador", dest="no_browser", action="store_true", help="do not open the browser")
+    ap.add_argument("--port", "--puerto", dest="port", type=int, help="local port (default 8765)")
+    ap.add_argument("--interval", "--intervalo", dest="interval", type=int, default=60, help="seconds between updates (default 60)")
+    ap.add_argument("--choose-world", "--elegir-mundo", dest="choose_world", action="store_true", help="choose which world the page is built from (or go back to automatic mode)")
+    ap.add_argument("--install-startup", "--instalar-inicio", dest="install_startup", action="store_true")
+    ap.add_argument("--remove-startup", "--quitar-inicio", dest="remove_startup", action="store_true")
     args = ap.parse_args()
-    QUIET = args.silencioso
-    if args.silencioso and IS_WIN and paths.FROZEN:
+    QUIET = args.silent
+    if args.silent and IS_WIN and paths.FROZEN:
         try:
             import ctypes
             ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
         except Exception:
             pass
-    if args.instalar_inicio:
+    if args.install_startup:
         return instalar_inicio()
-    if args.quitar_inicio:
+    if args.remove_startup:
         return quitar_inicio()
 
     os.makedirs(DATA, exist_ok=True)
     cfg = load_config()
-    port = args.puerto or int(os.environ.get("MCDASH_PORT") or cfg.get("port", 8765))
+    port = args.port or int(os.environ.get("MCDASH_PORT") or cfg.get("port", 8765))
     local = f"http://127.0.0.1:{port}/"
 
-    # ya hay otra copia en marcha: solo se enseña el enlace
+    # another copy is already running: just show its link
     pidfile = os.path.join(DATA, "start.pid")
     try:
         other = int(open(pidfile).read().strip())
         if other != os.getpid() and pid_alive(other):
             link = open(os.path.join(DATA, "enlace.txt"), encoding="utf-8").read().strip() if os.path.exists(os.path.join(DATA, "enlace.txt")) else local
-            say(f"Ya está en marcha.  Enlace: {link}")
+            say(f"Already running.  Link: {link}")
             return
     except Exception:
         pass
     open(pidfile, "w").write(str(os.getpid()))
 
-    if not args.silencioso:
-        choose_world(force=args.elegir_mundo)
-    say("Leyendo tu mundo de Minecraft (la primera vez tarda un poco)...")
+    if not args.silent:
+        choose_world(force=args.choose_world)
+    say("Reading your Minecraft world (the first time takes a little while)...")
     out = run_build()
-    say("  " + (out.splitlines()[-1] if out else "sin salida"))
-    if "No encuentro ning" in out:
-        say("\nNo he encontrado ningún mundo. Abre Minecraft al menos una vez con un mundo y vuelve a ejecutar esto,")
-        say("o indica la carpeta de tu instancia en config.json (mira config.example.json).")
+    say("  " + (out.splitlines()[-1] if out else "no output"))
+    if "No Minecraft world found" in out:
+        say("\nNo world found. Open Minecraft at least once with a world and run this again,")
+        say("or run it with --choose-world to enter your instance folder by hand.")
         return
 
     procs = {}
@@ -346,7 +346,7 @@ def main():
         try:
             cf = ensure_cloudflared()
         except Exception as e:
-            say(f"No he podido preparar el enlace público: {e}")
+            say(f"Could not set up the public link: {e}")
             return None
         p = spawn([cf, "tunnel", "--no-autoupdate", "--url", f"http://127.0.0.1:{port}"], stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT, text=True, bufsize=1)
@@ -365,12 +365,12 @@ def main():
         return p
 
     procs["server"] = start_server()
-    if not args.sin_enlace:
+    if not args.no_link:
         state["url"] = None
         procs["tunnel"] = start_tunnel()
     time.sleep(1.5)
     if not port_in_use(port):
-        say(f"No he podido arrancar la página en el puerto {port}. ¿Lo está usando otro programa? Prueba: python start.py --puerto 8770")
+        say(f"Could not start the page on port {port}. Is another program using it? Try: --port 8770")
         return
 
     link = None
@@ -387,25 +387,25 @@ def main():
             return
         copied = copy_to_clipboard(url) if url else False
         print("\n" + "=" * 64)
-        print("  ¡Tu página ya está lista!")
-        print(f"  Para ti:            {local}")
+        print("  Your page is ready!")
+        print(f"  For you:            {local}")
         if url:
-            print(f"  Para tus amigos:    {url}" + ("   (copiado)" if copied else ""))
-            print("  Pásales ese enlace: no tienen que instalar ni tocar nada.")
-            print("  OJO: el enlace cambia cada vez que se reinicia esto, y quien lo tenga puede ver")
-            print("  los nombres de los jugadores y sus coordenadas.")
+            print(f"  For your friends:   {url}" + ("   (copied)" if copied else ""))
+            print("  Send them that link: they do not need to install or touch anything.")
+            print("  NOTE: the link changes every time this restarts, and anyone who has it can see")
+            print("  the players names and their coordinates.")
         else:
-            print("  (Sin enlace público: solo se ve en este ordenador.)")
-        print("  Deja esta ventana abierta; ciérrala para dejar de compartir.")
+            print("  (No public link: it can only be seen on this computer.)")
+        print("  Keep this window open; close it to stop sharing.")
         print("=" * 64 + "\n")
 
     announce(link)
-    if not args.silencioso and not args.sin_navegador:
+    if not args.silent and not args.no_browser:
         try:
             webbrowser.open(local)
         except Exception:
             pass
-    if not args.silencioso and IS_WIN and sys.stdin and sys.stdin.isatty() and not inicio_instalado():
+    if not args.silent and IS_WIN and sys.stdin and sys.stdin.isatty() and not inicio_instalado():
         pref = os.path.join(DATA, "preferencias.json")
         asked = False
         try:
@@ -414,25 +414,25 @@ def main():
             pass
         if not asked:
             try:
-                ans = input("¿Quieres que esto se inicie solo al encender el ordenador? [s/N] ").strip().lower()
+                ans = input("Start this automatically when you log in to the computer? [y/N] ").strip().lower()
             except EOFError:
                 ans = ""
             save_prefs(preguntado=True)
-            if ans.startswith("s"):
+            if ans.startswith("y"):
                 instalar_inicio()
 
-    # bucle: actualizar los datos y vigilar que todo siga vivo
+    # loop: refresh the data and make sure everything stays alive
     try:
-        next_build = time.time() + args.intervalo
+        next_build = time.time() + args.interval
         while True:
             time.sleep(2)
             if time.time() >= next_build:
                 run_build()
-                next_build = time.time() + args.intervalo
+                next_build = time.time() + args.interval
             if procs.get("server") is not None and procs["server"].poll() is not None:
                 procs["server"] = start_server()
             if "tunnel" in procs and procs["tunnel"] is not None and procs["tunnel"].poll() is not None:
-                say("El enlace se ha caído; creo uno nuevo...")
+                say("The link went down; creating a new one...")
                 state["url"] = None
                 procs["tunnel"] = start_tunnel()
                 t0 = time.time()
@@ -449,12 +449,12 @@ def main():
             os.remove(pidfile)
         except OSError:
             pass
-        say("Parado. Hasta la próxima.")
+        say("Stopped. See you next time.")
 
 
 if __name__ == "__main__":
     import multiprocessing
-    multiprocessing.freeze_support()          # imprescindible en el .exe: build.py usa procesos
+    multiprocessing.freeze_support()          # required in the .exe: build.py uses processes
     if "--build" in sys.argv[1:2]:
         import build
         build.main()

@@ -79,10 +79,10 @@ def launcher_of(instance):
     p = instance.replace("\\", "/").lower()
     for key, name in (("modrinthapp", "Modrinth"), ("com.modrinth", "Modrinth"), ("prismlauncher", "Prism Launcher"),
                       ("multimc", "MultiMC"), ("curseforge", "CurseForge"), ("gdlauncher", "GDLauncher"),
-                      ("atlauncher", "ATLauncher"), ("/.minecraft", "Launcher oficial"), ("/minecraft", "Launcher oficial")):
+                      ("atlauncher", "ATLauncher"), ("/.minecraft", "Official Launcher"), ("/minecraft", "Official Launcher")):
         if key in p:
             return name
-    return "Otro"
+    return "Other"
 
 
 def worlds_of(instance):
