@@ -86,7 +86,7 @@ button{font:inherit;color:inherit}
 .dot{width:10px;height:10px;background:var(--accent);display:inline-block}
 .stamp.stale .dot{background:var(--warn)}
 /* idiomas de derecha a izquierda: el título (letra a letra) y los dígitos de los contadores se quedan en su orden */
-[dir=rtl] .top h1, [dir=rtl] .reel{direction:ltr}
+[dir=rtl] .top h1, [dir=rtl] .reel, [dir=rtl] .mapcol{direction:ltr}
 [dir=rtl] .top h1{text-align:right}
 .arow .tm{white-space:nowrap}
 .langsel{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 8px;font-size:13px;border-radius:2px;cursor:pointer;max-width:150px}
@@ -229,6 +229,8 @@ section .lede{color:var(--muted);margin:0 0 24px;max-width:60ch}
 .ach .day{font:700 14px/1 var(--sans);color:var(--muted);margin:26px 0 6px;text-transform:none;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .arow{display:grid;grid-template-columns:52px 34px 1fr;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
 .arow .tm{font:700 13px/1 var(--num);color:var(--muted)}
+.ach.t12 .arow{grid-template-columns:78px 34px 1fr}   /* horas de 12 h (08:14 PM): la columna se ensancha para que la cabeza no tape la hora */
+@media (max-width:480px){ .arow{gap:8px} }
 .arow .head{width:34px;height:34px;line-height:34px}
 .arow .tx b{font-weight:700}
 .arow .tx .tt{display:inline-flex;align-items:center;gap:6px}
@@ -784,6 +786,7 @@ function renderAch(){
   $('achTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{ achFilter=b.dataset.u; renderAch(); });
   const rows = list.filter(a=>achFilter==='all' || a.u===achFilter).filter(a=>byU[a.u]);
   if(!rows.length){ el.innerHTML = '<p class="rnote">'+esc(t('ach.empty'))+'</p>'; return; }
+  el.classList.toggle('t12', new Date().toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'}).length > 5);
   const today = new Date().toDateString(), yest = new Date(Date.now()-864e5).toDateString();
   let html = '', lastDay = '';
   rows.slice(0, achLimit).forEach(a=>{
