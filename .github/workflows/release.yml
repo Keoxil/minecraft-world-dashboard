@@ -30,8 +30,10 @@ jobs:
           $v = "${{ github.ref_name }}".TrimStart("v")
           if (-not $v -or $v -eq "main") { $v = "0.0.0" }
           Set-Content -Path assets/version.txt -Value $v -NoNewline
+          $parts = ($v -split '\.') + @('0','0','0')
+          (Get-Content assets/version_info.txt -Raw).Replace('@MAJ@',$parts[0]).Replace('@MIN@',$parts[1]).Replace('@PAT@',$parts[2]).Replace('@VER@',$v) | Set-Content -Path build_version_info.txt -Encoding utf8
           python -m PyInstaller --noconfirm --clean --onedir --noconsole --name MinecraftWorldDashboard `
-            --icon assets/app.ico --collect-all customtkinter `
+            --icon assets/app.ico --version-file build_version_info.txt --collect-all customtkinter `
             --add-data "site/index.html;site" --add-data "site/lang;site/lang" `
             --add-data "assets/app.ico;." --add-data "assets/app_icon.png;." --add-data "assets/version.txt;." `
             --distpath dist_app --workpath build_tmp gui.py

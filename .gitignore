@@ -24,3 +24,4 @@ __pycache__/
 # local app build
 /dist_app/
 /build_tmp/
+/build_version_info.txt
