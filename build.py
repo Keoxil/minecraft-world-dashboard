@@ -1,5 +1,5 @@
 """Lee el mundo de Minecraft que esté abierto y genera data.js, history.js y terrain.js para la página (carpeta site/)."""
-import glob, json, os, struct, sys, time, zlib
+import glob, json, os, re, struct, sys, time, zlib
 from datetime import datetime, timezone
 from multiprocessing import Pool
 
@@ -278,10 +278,15 @@ def item_brief(it):
     return {"id": it["id"].split(":")[-1], "n": it.get("count", 1)}
 
 
+UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$")
+
+
 def read_players(names):
     players, achievements = [], []
     for f in discover.stat_files(WORLD):
         uuid = os.path.basename(f)[:-5]
+        if not UUID_RE.match(uuid):                                   # ids end up inside the page's HTML: only real UUIDs are allowed
+            continue
         s = json.load(open(f, encoding="utf-8")).get("stats", {})
         c = s.get("minecraft:custom", {})
         mined = s.get("minecraft:mined", {})

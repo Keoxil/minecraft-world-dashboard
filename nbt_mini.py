@@ -1,6 +1,10 @@
 import gzip, struct
+MAX_DEPTH = 128          # real NBT is far shallower; stops "depth bomb" files
+
+
 def read_nbt(raw):
     pos = 0
+    depth = 0
     def u(fmt, n):
         nonlocal pos
         v = struct.unpack_from(">" + fmt, raw, pos)[0]; pos += n; return v
@@ -8,6 +12,16 @@ def read_nbt(raw):
         nonlocal pos
         l = u("H", 2); s = raw[pos:pos+l].decode("utf-8", "replace"); pos += l; return s
     def payload(t):
+        nonlocal pos, depth
+        depth += 1
+        if depth > MAX_DEPTH:
+            raise ValueError("NBT nested too deeply")
+        try:
+            return _payload(t)
+        finally:
+            depth -= 1
+
+    def _payload(t):
         nonlocal pos
         if t == 1: return u("b", 1)
         if t == 2: return u("h", 2)
@@ -19,7 +33,10 @@ def read_nbt(raw):
             n = u("i", 4); v = raw[pos:pos+n]; pos += n; return list(v)
         if t == 8: return string()
         if t == 9:
-            it = u("b", 1); n = u("i", 4); return [payload(it) for _ in range(n)]
+            it = u("b", 1); n = u("i", 4)
+            if n < 0 or n > len(raw) - pos:                           # a list cannot have more items than bytes left
+                raise ValueError("bad NBT list length")
+            return [payload(it) for _ in range(n)]
         if t == 10:
             d = {}
             while True:

@@ -260,7 +260,7 @@ def java_running():
     """¿Hay algún Minecraft (Java) en marcha?"""
     try:
         if IS_WIN:
-            out = subprocess.run(["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True, timeout=10,
+            out = subprocess.run([os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "tasklist.exe"), "/FO", "CSV", "/NH"], capture_output=True, text=True, timeout=10,
                                  creationflags=NO_WINDOW).stdout.lower()
             return "javaw.exe" in out or "java.exe" in out
         return subprocess.run(["pgrep", "-f", "java"], capture_output=True, timeout=10).returncode == 0

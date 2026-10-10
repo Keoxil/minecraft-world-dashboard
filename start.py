@@ -69,9 +69,20 @@ def _asset():
     return f"cloudflared-linux-{arch}", "cloudflared", False
 
 
+def sys_tool(name):
+    """Full path of a Windows system tool, so a same-named program in the current folder can never be run instead."""
+    if IS_WIN:
+        p = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", name + ".exe")
+        if os.path.isfile(p):
+            return p
+    return name
+
+
 def _get(url, timeout=60):
+    if not url.lower().startswith("https://"):                       # downloads and API calls are HTTPS only
+        raise RuntimeError("refusing to use a non-HTTPS URL")
     req = urllib.request.Request(url, headers={"User-Agent": "minecraft-world-dashboard", "Accept": "application/vnd.github+json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:  # nosec B310 - https enforced above
         return r.read()
 
 
@@ -105,7 +116,7 @@ def ensure_cloudflared():
     else:
         open(dest, "wb").write(blob)
     if not IS_WIN:
-        os.chmod(dest, 0o755)
+        os.chmod(dest, 0o700)                                         # only the current user may run/modify it
     say("Cloudflare tool downloaded and verified.")
     return dest
 
@@ -125,7 +136,7 @@ def port_in_use(port):
 def copy_to_clipboard(text):
     try:
         if IS_WIN:
-            subprocess.run(["clip"], input=text.encode("utf-8"), creationflags=NO_WINDOW, timeout=5)
+            subprocess.run([sys_tool("clip")], input=text.encode("utf-8"), creationflags=NO_WINDOW, timeout=5)
         elif sys.platform == "darwin":
             subprocess.run(["pbcopy"], input=text.encode("utf-8"), timeout=5)
         else:
@@ -141,7 +152,7 @@ def copy_to_clipboard(text):
 def pid_alive(pid):
     try:
         if IS_WIN:
-            out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True, creationflags=NO_WINDOW).stdout
+            out = subprocess.run([sys_tool("tasklist"), "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True, creationflags=NO_WINDOW).stdout
             return str(pid) in out
         os.kill(pid, 0)
         return True
@@ -264,21 +275,21 @@ def instalar_inicio():
     pyw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
     exe = pyw if os.path.isfile(pyw) else sys.executable
     tr = f'"{sys.executable}" --silent' if paths.FROZEN else f'"{exe}" "{SELF}" --silent'
-    r = subprocess.run(["schtasks", "/Create", "/TN", TASK_INICIO, "/SC", "ONLOGON", "/F", "/TR", tr],
+    r = subprocess.run([sys_tool("schtasks"), "/Create", "/TN", TASK_INICIO, "/SC", "ONLOGON", "/F", "/TR", tr],
                        capture_output=True, text=True, creationflags=NO_WINDOW)
     say("Done: it will start by itself every time you log in." if r.returncode == 0 else "Could not create it: " + r.stdout + r.stderr)
 
 
 def quitar_inicio():
     if IS_WIN:
-        subprocess.run(["schtasks", "/Delete", "/TN", TASK_INICIO, "/F"], capture_output=True, creationflags=NO_WINDOW)
+        subprocess.run([sys_tool("schtasks"), "/Delete", "/TN", TASK_INICIO, "/F"], capture_output=True, creationflags=NO_WINDOW)
     say("It will no longer start by itself.")
 
 
 def inicio_instalado():
     if not IS_WIN:
         return True
-    return subprocess.run(["schtasks", "/Query", "/TN", TASK_INICIO], capture_output=True, creationflags=NO_WINDOW).returncode == 0
+    return subprocess.run([sys_tool("schtasks"), "/Query", "/TN", TASK_INICIO], capture_output=True, creationflags=NO_WINDOW).returncode == 0
 
 
 # ------------------------------------------------------------------ main

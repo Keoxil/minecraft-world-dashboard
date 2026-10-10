@@ -1,6 +1,7 @@
 """Servidor local mínimo: solo sirve lo imprescindible de site/ (lista blanca) y solo en 127.0.0.1."""
 import json
 import os
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import paths
@@ -27,6 +28,22 @@ CSP = ("default-src 'none'; script-src 'self' 'unsafe-inline'; "
        "base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
 
 
+# Only these Host names may use the server (blocks DNS-rebinding): this computer, the free Cloudflare tunnels, and any
+# extra names listed in config.json -> "allowed_hosts" (for a named tunnel).
+EXTRA_HOSTS = {str(h).lower() for h in CFG.get("allowed_hosts", [])}
+MAX_CONNECTIONS = 64
+_slots = threading.BoundedSemaphore(MAX_CONNECTIONS)
+
+
+def host_ok(host):
+    h = (host or "").lower().strip()
+    if h.startswith("["):                                              # [::1]:port
+        h = h.split("]")[0] + "]"
+    else:
+        h = h.split(":")[0]
+    return h in ("127.0.0.1", "localhost", "[::1]") or h.endswith(".trycloudflare.com") or h in EXTRA_HOSTS
+
+
 LANG_FILES = {"/lang/%s.js" % c for c in ("es", "en", "zh", "hi", "ar", "fr", "pt", "ru", "de", "ja")}   # solo estos archivos de idioma
 
 
@@ -35,6 +52,22 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "mcdash"
     sys_version = ""
     def do_GET(self):
+        if not host_ok(self.headers.get("Host")):
+            self.send_error(421, "Unknown host")
+            return
+        # another website must not be able to pull the data into its own page (<script src=...> from a different site)
+        if (self.headers.get("Sec-Fetch-Site") or "same-origin") not in ("same-origin", "none"):
+            self.send_error(403, "Cross-site requests are not allowed")
+            return
+        if not _slots.acquire(blocking=False):                         # too many simultaneous requests
+            self.send_error(503, "Busy")
+            return
+        try:
+            self._serve()
+        finally:
+            _slots.release()
+
+    def _serve(self):
         path = self.path.split("?", 1)[0]
         item = ALLOWED.get(path) or ((path[1:], JS) if path in LANG_FILES else None)
         if not item:
@@ -52,6 +85,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
         self.send_header("Content-Security-Policy", CSP)
         self.end_headers()
