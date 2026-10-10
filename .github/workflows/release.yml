@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install pyinstaller==6.11.1 customtkinter==5.2.2
           $v = "${{ github.ref_name }}".TrimStart("v")
-          if (-not $v -or $v -eq "main") { $v = "0.0.0" }
+          if ($v -notmatch '^\d+\.\d+\.\d+$') { $v = "0.0.0" }   # branch builds (manual runs) get a placeholder version
           Set-Content -Path assets/version.txt -Value $v -NoNewline
           $parts = ($v -split '\.') + @('0','0','0')
           (Get-Content assets/version_info.txt -Raw).Replace('@MAJ@',$parts[0]).Replace('@MIN@',$parts[1]).Replace('@PAT@',$parts[2]).Replace('@VER@',$v) | Set-Content -Path build_version_info.txt -Encoding utf8
