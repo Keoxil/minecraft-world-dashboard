@@ -536,6 +536,8 @@ def configure():
     chosen = prefs.get("world")             # mundo elegido en el menú de arranque (config.json manda si también fija uno)
     if chosen and not cfg.get("world") and os.path.isfile(os.path.join(chosen, "level.dat")):
         cfg = dict(cfg, world=chosen)
+    if prefs.get("instances"):                # carpetas añadidas a mano desde el menú
+        cfg = dict(cfg, instances=list(cfg.get("instances", [])) + list(prefs["instances"]))
     if prefs.get("launcher") and not cfg.get("launcher"):
         cfg = dict(cfg, launcher=prefs["launcher"])
     sel = discover.pick(cfg, DATA_DIR)

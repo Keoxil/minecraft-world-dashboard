@@ -30,6 +30,24 @@ def _appdata():
     return os.environ.get("XDG_DATA_HOME") or os.path.join(_home(), ".local", "share")
 
 
+def _documents_dirs():
+    """Carpetas donde puede estar CurseForge: el perfil, Documentos y Documentos dentro de OneDrive (muy habitual en Windows)."""
+    home = _home()
+    out = [home, os.path.join(home, "Documents")]
+    for var in ("OneDrive", "OneDriveConsumer", "OneDriveCommercial"):
+        base = os.environ.get(var)
+        if base:
+            out += [base, os.path.join(base, "Documents"), os.path.join(base, "Documentos")]
+    out += [os.path.join(home, "OneDrive", "Documents"), os.path.join(home, "OneDrive", "Documentos"), os.path.join(home, "Documentos")]
+    seen, res = set(), []
+    for d in out:
+        d = os.path.normpath(d)
+        if d not in seen:
+            seen.add(d)
+            res.append(d)
+    return res
+
+
 def instance_roots(extra=()):
     """Carpetas de instancia (las que contienen saves/)."""
     ad, home = _appdata(), _home()
@@ -40,9 +58,10 @@ def instance_roots(extra=()):
         os.path.join(ad, "PrismLauncher", "instances", "*", ".minecraft"),
         os.path.join(ad, "PrismLauncher", "instances", "*", "minecraft"),
         os.path.join(ad, "MultiMC", "instances", "*", ".minecraft"),
-        os.path.join(home, "curseforge", "minecraft", "Instances", "*"),
-        os.path.join(home, "Documents", "curseforge", "minecraft", "Instances", "*"),
-    ):
+        os.path.join(ad, "gdlauncher_next", "instances", "*"),
+        os.path.join(ad, "ATLauncher", "instances", "*"),
+        os.path.join(ad, "PrismLauncher", "instances", "*", "minecraft"),
+    ) + tuple(os.path.join(d, "curseforge", "minecraft", "Instances", "*") for d in _documents_dirs()):
         candidates += glob.glob(pattern)
     for e in list(extra) + [p for p in os.environ.get("MCDASH_INSTANCES", "").split(os.pathsep) if p]:
         candidates.append(os.path.expanduser(e))

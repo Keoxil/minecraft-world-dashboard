@@ -174,12 +174,12 @@ def choose_world(force=False):
     prefs = load_prefs()
     if not force and prefs.get("mundo_preguntado"):
         return
-    worlds = discover.list_worlds(load_config())
-    if len(worlds) < 2 and not force:
-        return
-    if not worlds:
-        return
+    cfg = dict(load_config())
+    cfg["instances"] = list(cfg.get("instances", [])) + list(prefs.get("instances", []))
+    worlds = discover.list_worlds(cfg)
     if not (sys.stdin and sys.stdin.isatty()):
+        return
+    if len(worlds) < 2 and not force and worlds:
         return
     def ask(prompt):
         try:
@@ -193,6 +193,20 @@ def choose_world(force=False):
         if w["launcher"] not in launchers:
             launchers.append(w["launcher"])
     chosen_l = None
+    if not worlds:
+        print("\nNo he encontrado ningún mundo de Minecraft automáticamente.")
+        print("  +) Indicar la carpeta a mano")
+        a = ask("Escribe + para indicarla, o Intro para continuar: ")
+        if a == "+":
+            folder = ask("Pega la ruta de la carpeta de tu instancia (la que contiene la carpeta 'saves'): ").strip('" ')
+            folder = os.path.abspath(os.path.expanduser(folder)) if folder else ""
+            if os.path.basename(folder).lower() == "saves":
+                folder = os.path.dirname(folder)
+            if folder and os.path.isdir(os.path.join(folder, "saves")):
+                save_prefs(instances=sorted(set(prefs.get("instances", [])) | {folder}))
+                return choose_world(force=True)
+            print("  No he encontrado la carpeta 'saves' ahí.\n")
+        return
     if len(launchers) > 1:
         print("\nHe encontrado Minecraft en estos launchers:")
         print("  0) Todos / automático (recomendado)")
@@ -207,7 +221,19 @@ def choose_world(force=False):
     print("  0) Automático: el que tengas abierto en cada momento (recomendado)")
     for n, w in enumerate(worlds, 1):
         print(f"  {n}) {w['name']}   [{w['launcher']}: {os.path.basename(w['instance'])}]" + ("   <- abierto ahora" if w["open"] else ""))
-    a = ask(f"Elige un número [0-{len(worlds)}] (Intro = 0): ")
+    print("  +) Mi Minecraft está en otra carpeta (indicarla a mano)")
+    a = ask(f"Elige un número [0-{len(worlds)}] o + (Intro = 0): ")
+    if a == "+":
+        folder = ask("Pega la ruta de la carpeta de tu instancia (la que contiene la carpeta 'saves'): ").strip('" ')
+        folder = os.path.abspath(os.path.expanduser(folder)) if folder else ""
+        if os.path.basename(folder).lower() == "saves":
+            folder = os.path.dirname(folder)
+        if folder and os.path.isdir(os.path.join(folder, "saves")):
+            save_prefs(instances=sorted(set(prefs.get("instances", [])) | {folder}))
+            print("  -> Carpeta añadida.")
+            return choose_world(force=True)
+        print("  No he encontrado la carpeta 'saves' ahí; no cambio nada.\n")
+        return
     pick = int(a) if a.isdigit() and 0 <= int(a) <= len(worlds) else 0
     if pick:
         save_prefs(mundo_preguntado=True, world=worlds[pick - 1]["world"], launcher=None)
